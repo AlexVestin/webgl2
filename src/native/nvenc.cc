@@ -267,64 +267,79 @@ GL_METHOD(NvencEncode) { NAPI_ENV;
     
     //write_to_img(std::to_string(counter++), screenWidth, screenHeight);
     
-    // unbind
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindVertexArray(0);
-    glUseProgram(0);
-    
+
     int ret;
-    if (!(frame = av_frame_alloc())) {
+    if(has_hardware_support) {
+      if (!(frame = av_frame_alloc())) {
         std::cout << "Error allocating frame" << std::endl;
         exit(1);
-    }
+     }
 
-    if ((ret = av_hwframe_get_buffer(c->hw_frames_ctx, frame, 0)) < 0) {
-        std::cout << "error getting buffer" << std::endl;
-        std::cout << AVERROR(EINVAL) << ":" << ret << std::endl;
-        char err_chars[64];
-        av_strerror(ret, err_chars, 64);
-        std::cout << err_chars << std::endl;
+      if ((ret = av_hwframe_get_buffer(c->hw_frames_ctx, frame, 0)) < 0) {
+          std::cout << "error getting buffer" << std::endl;
+          std::cout << AVERROR(EINVAL) << ":" << ret << std::endl;
+          char err_chars[64];
+          av_strerror(ret, err_chars, 64);
+          std::cout << err_chars << std::endl;
+          exit(1);
+      }
+      if (!frame->hw_frames_ctx) {
+          std::cout << "no hw frames ctx" << std::endl;
+          exit(1);
+      }
+
+      // Perform cuda mem copy for input buffer
+      CUresult cuRes;
+      CUarray mappedArray;
+      CUcontext oldCtx;
+
+      // Get context
+      cuRes = cuCtxPopCurrent_v2(&oldCtx);  // THIS IS ALLOWED TO FAIL
+      cuRes = cuCtxPushCurrent_v2(*m_cuContext);
+
+      // Get Texture
+      cuGraphicsResourceSetMapFlags_v2(*cuInpTexRes, CU_GRAPHICS_MAP_RESOURCE_FLAGS_READ_ONLY);
+      cuGraphicsMapResources(1, cuInpTexRes, 0);
+
+      // Map texture to cuda array
+      cuRes = cuGraphicsSubResourceGetMappedArray(&mappedArray, *cuInpTexRes, 0, 0);
+      if (cuRes != 0) {
+          std::cout << "ERROR get mapped array" << std::endl;
+      }
+      cuRes = cuGraphicsUnmapResources(1, cuInpTexRes, 0);
+      if (cuRes != 0) {
+          std::cout << "ERROR unmapped array" << std::endl;
+      }
+
+      m_memCpyStruct->srcArray = mappedArray;
+      m_memCpyStruct->dstDevice = (CUdeviceptr)frame->data[0];
+      m_memCpyStruct->dstPitch = frame->linesize[0];
+      m_memCpyStruct->WidthInBytes = frame->width * 4;  //* 4 needed for each pixel
+      m_memCpyStruct->Height = frame->height;           // Vanilla height for frame
+
+      cuRes = cuMemcpy2D_v2(m_memCpyStruct);
+    } else {
+      frame = av_frame_alloc();
+      ret = av_frame_make_writable(frame);
+
+      unsigned char* pixels = new unsigned char[screenWidth * screenHeight * 4];
+      glReadPixels(0, 0, screenWidth, screenHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+      uint8_t *inData[1]     = { pixels };
+      int inLinesize[1] = { 4 * c->width };
+
+      frame->format = AV_PIX_FMT_YUV420P;
+      frame->width = c->width;
+      frame->height = c->height;
+      ret = av_frame_get_buffer(frame, 32);
+      if(ret < 0) {
+        std::cerr << "Couldnt get frame buffer for encoding." << std::endl;
         exit(1);
+      }
+        
+      sws_scale(video_sws_ctx, inData, inLinesize, 0, c->height, frame->data, frame->linesize);
+      free(pixels);
     }
-    if (!frame->hw_frames_ctx) {
-        std::cout << "no hw frames ctx" << std::endl;
-        exit(1);
-    }
-
-    // Perform cuda mem copy for input buffer
-    CUresult cuRes;
-    CUarray mappedArray;
-    CUcontext oldCtx;
-
-    // Get context
-    cuRes = cuCtxPopCurrent_v2(&oldCtx);  // THIS IS ALLOWED TO FAIL
-    cuRes = cuCtxPushCurrent_v2(*m_cuContext);
-
-    // Get Texture
-    cuGraphicsResourceSetMapFlags_v2(*cuInpTexRes, CU_GRAPHICS_MAP_RESOURCE_FLAGS_READ_ONLY);
-    cuGraphicsMapResources(1, cuInpTexRes, 0);
-
-    // Map texture to cuda array
-    cuRes = cuGraphicsSubResourceGetMappedArray(&mappedArray, *cuInpTexRes, 0, 0);
-    if (cuRes != 0) {
-        std::cout << "ERROR get mapped array" << std::endl;
-    }
-    cuRes = cuGraphicsUnmapResources(1, cuInpTexRes, 0);
-    if (cuRes != 0) {
-        std::cout << "ERROR unmapped array" << std::endl;
-    }
-
-    m_memCpyStruct->srcArray = mappedArray;
-    m_memCpyStruct->dstDevice = (CUdeviceptr)frame->data[0];
-    m_memCpyStruct->dstPitch = frame->linesize[0];
-    m_memCpyStruct->WidthInBytes = frame->width * 4;  //* 4 needed for each pixel
-    m_memCpyStruct->Height = frame->height;           // Vanilla height for frame
-
-    // Do memcpy
-    cuRes = cuMemcpy2D_v2(m_memCpyStruct);
+    
 
     // ret = avcodec_send_frame(c, frame);
     AVPacket enc_pkt;
@@ -339,6 +354,15 @@ GL_METHOD(NvencEncode) { NAPI_ENV;
 
     encode(frame, c, video_stream, &enc_pkt);
     av_frame_unref(frame);
+
+        // unbind
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindVertexArray(0);
+    glUseProgram(0);
+    
     RET_UNDEFINED;
     
 }
@@ -418,61 +442,19 @@ GL_METHOD(NvencClose) { NAPI_ENV;
     glDeleteRenderbuffers(1, &rboDepthId);
     glDeleteRenderbuffers(1, &rboId);
     // Free cuda stuff
-    cuGraphicsUnregisterResource(*cuInpTexRes);
-    // free(cuInpTexRes);
-    free(m_memCpyStruct);
+    if (has_hardware_support) {
+      cuGraphicsUnregisterResource(*cuInpTexRes);
+      // free(cuInpTexRes);
+      free(m_memCpyStruct);
+    }
+    
 
     std::cout << "done nvencClose" << std::endl;
     RET_UNDEFINED;
 }
 
-GL_METHOD(NvencInitVideo) { NAPI_ENV;
-  REQ_INT32_ARG(0, bit_rate);
-  REQ_INT32_ARG(1, min_bitrate);
-  REQ_INT32_ARG(2, max_bitrate);
-  REQ_INT32_ARG(3, fps);
-  REQ_STR_ARG(4, profile);
-  REQ_STR_ARG(5, level);
-  REQ_STR_ARG(6, preset);
 
-
-  glViewport(0, 0, screenWidth, screenHeight);
-
-  std::cout << glGetString(GL_VENDOR) << std::endl;
-  std::cout << glGetString(GL_RENDERER) << std::endl;
-  std::cout << glGetString(GL_VERSION) << std::endl;
-  std::cout << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
-
-  std::cout << "width: "<< screenWidth << std::endl;
-  std::cout << "height: "<< screenHeight << std::endl;
-
-  counter = 0;
-  CUresult res;
-  int ret = av_hwdevice_ctx_create(&m_avBufferRefDevice, AV_HWDEVICE_TYPE_CUDA, "", NULL, 0);
-
-  if (ret < 0) {
-    std::cerr << "Couldn't create hw_frame_ctx: " << ret << std::endl;
-    exit(1);
-  }
-  
-  hwDevContext = (AVHWDeviceContext*)(m_avBufferRefDevice->data);
-  cudaDevCtx = (AVCUDADeviceContext*)(hwDevContext->hwctx);
-  m_cuContext = &(cudaDevCtx->cuda_ctx);
-
-  m_avBufferRefFrame = av_hwframe_ctx_alloc(m_avBufferRefDevice);
-  frameCtxPtr = (AVHWFramesContext*)(m_avBufferRefFrame->data);
-  frameCtxPtr->width = screenWidth;
-  frameCtxPtr->height = screenHeight;
-  frameCtxPtr->sw_format = AV_PIX_FMT_RGB0;
-  frameCtxPtr->format = AV_PIX_FMT_CUDA;
-
-
-  ret = av_hwframe_ctx_init(m_avBufferRefFrame);
-  if (ret < 0) {
-    std::cerr << "Couldn't initialize hw_frame_ctx: " << ret << std::endl;
-    exit(1);
-  }
-
+void WebGLRenderingContext::setUpFramebuffers() {
   // Set up basic shader program ------------------------------------------------------------------------------------
    // Vertex shader
   GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -630,11 +612,11 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
 
-#if ANGLE
-  glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_NATIVE_ID_ANGLE, &native_texture_id);
-#else
-  native_texture_id = texture;
-#endif
+  #if ANGLE
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_NATIVE_ID_ANGLE, &native_texture_id);
+  #else
+    native_texture_id = texture;
+  #endif
 
   std::cout << "Native texture id: " << native_texture_id << std::endl;
 
@@ -646,40 +628,119 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
   glBindTexture(GL_TEXTURE_2D, 0);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  // Cast the OGL texture/buffer to cuda ptr
-  std::cout << "Setting up cuda driver context..." << std::endl;
-  CUcontext oldCtx;
-  res = cuCtxPopCurrent_v2(&oldCtx);  // THIS IS ALLOWED TO FAIL
-  res = cuCtxPushCurrent_v2(*m_cuContext);
-  cuInpTexRes = (CUgraphicsResource*)malloc(sizeof(CUgraphicsResource));
-  res = cuGraphicsGLRegisterImage(cuInpTexRes, native_texture_id, GL_TEXTURE_2D,
-                                  CU_GRAPHICS_REGISTER_FLAGS_READ_ONLY);
-  if (res != 0) {
-#if ANGLE
-    std::cout << "failed to initialize image: " << native_texture_id << ":"
-              << GL_TEXTURE_NATIVE_ID_ANGLE << std::endl;
-#else
-    std::cout << "failed to initialize image: " << native_texture_id
-              << std::endl;
-#endif
-    exit(1);
-  } else {
-    std::cout << "Image initialized" << std::endl;
+}
+
+
+GL_METHOD(NvencInitVideo) { NAPI_ENV;
+  REQ_INT32_ARG(0, bit_rate);
+  REQ_INT32_ARG(1, min_bitrate);
+  REQ_INT32_ARG(2, max_bitrate);
+  REQ_INT32_ARG(3, fps);
+  REQ_STR_ARG(4, profile);
+  REQ_STR_ARG(5, level);
+  REQ_STR_ARG(6, preset);
+
+
+  glViewport(0, 0, screenWidth, screenHeight);
+  setUpFramebuffers();
+
+  std::cout << glGetString(GL_VENDOR) << std::endl;
+  std::cout << glGetString(GL_RENDERER) << std::endl;
+  std::cout << glGetString(GL_VERSION) << std::endl;
+  std::cout << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+
+  std::cout << "width: "<< screenWidth << std::endl;
+  std::cout << "height: "<< screenHeight << std::endl;
+
+  counter = 0;
+  CUresult res;
+  int ret;
+  //has_hardware_support = false;
+  ret = av_hwdevice_ctx_create(&m_avBufferRefDevice, AV_HWDEVICE_TYPE_CUDA, "", NULL, 0);
+
+  
+  if (ret < 0) {
+    std::cerr << "Couldn't create hw_frame_ctx: " << ret << std::endl;
+    has_hardware_support = false;
+    //exit(1);
   }
-  res = cuCtxPopCurrent_v2(&oldCtx);  // THIS IS ALLOWED TO FAIL
+  
+  AVCodec* codec;
 
-  std::cout << "Setting up codec..." << std::endl;
-  AVCodec* codec = avcodec_find_encoder_by_name("h264_nvenc");
-  c = avcodec_alloc_context3(codec);
+  if (has_hardware_support) {
+    hwDevContext = (AVHWDeviceContext*)(m_avBufferRefDevice->data);
+    cudaDevCtx = (AVCUDADeviceContext*)(hwDevContext->hwctx);
+    m_cuContext = &(cudaDevCtx->cuda_ctx);
 
-  // Assign some hardware accel specific data to AvCodecContext
-  c->hw_device_ctx = m_avBufferRefDevice;
-  c->pix_fmt = AV_PIX_FMT_CUDA;
+    m_avBufferRefFrame = av_hwframe_ctx_alloc(m_avBufferRefDevice);
+    frameCtxPtr = (AVHWFramesContext*)(m_avBufferRefFrame->data);
+    frameCtxPtr->width = screenWidth;
+    frameCtxPtr->height = screenHeight;
+    frameCtxPtr->sw_format = AV_PIX_FMT_RGB0;
+    frameCtxPtr->format = AV_PIX_FMT_CUDA;
 
-  c->hw_frames_ctx = m_avBufferRefFrame;
+    ret = av_hwframe_ctx_init(m_avBufferRefFrame);
+    if (ret < 0) {
+      std::cerr << "Couldn't initialize hw_frame_ctx: " << ret << std::endl;
+      exit(1);
+    }
+  
+    // Cast the OGL texture/buffer to cuda ptr
+    std::cout << "Setting up cuda driver context..." << std::endl;
+    CUcontext oldCtx;
+    res = cuCtxPopCurrent_v2(&oldCtx);  // THIS IS ALLOWED TO FAIL
+    res = cuCtxPushCurrent_v2(*m_cuContext);
+    cuInpTexRes = (CUgraphicsResource*)malloc(sizeof(CUgraphicsResource));
+    res = cuGraphicsGLRegisterImage(cuInpTexRes, native_texture_id, GL_TEXTURE_2D,
+                                    CU_GRAPHICS_REGISTER_FLAGS_READ_ONLY);
+    if (res != 0) {
+        std::cout << "failed to initialize image: " << native_texture_id  << std::endl;
+        exit(1);
+    } 
+
+    std::cout << "Image initialized" << std::endl;
+    res = cuCtxPopCurrent_v2(&oldCtx);  // THIS IS ALLOWED TO FAIL
+
+    std::cout << "Setting up codec..." << std::endl;
+      
+    codec = avcodec_find_encoder_by_name("h264_nvenc");
+    c = avcodec_alloc_context3(codec);
+
+    // Assign some hardware accel specific data to AvCodecContext
+    c->hw_device_ctx = m_avBufferRefDevice;
+    c->pix_fmt = AV_PIX_FMT_CUDA;
+    c->sw_pix_fmt = AV_PIX_FMT_RGB0;
+    c->hw_frames_ctx = m_avBufferRefFrame;
+
+    av_opt_set(c->priv_data, "preset", preset.c_str(), 0);
+    av_opt_set(c->priv_data, "profile", profile.c_str(), 0);
+    av_opt_set(c->priv_data, "level", level.c_str(), 0);
+
+  
+    m_memCpyStruct = (CUDA_MEMCPY2D_st*)malloc(sizeof(CUDA_MEMCPY2D_st));
+    m_memCpyStruct->srcXInBytes = 0;
+    m_memCpyStruct->srcY = 0;
+    m_memCpyStruct->srcMemoryType = CUmemorytype::CU_MEMORYTYPE_ARRAY;
+
+    m_memCpyStruct->dstXInBytes = 0;
+    m_memCpyStruct->dstY = 0;
+    m_memCpyStruct->dstMemoryType = CUmemorytype::CU_MEMORYTYPE_DEVICE;
+
+    std::cout << "Setting up output format..." << std::endl;
+  } else {
+    codec = avcodec_find_encoder_by_name("libx264");
+    c = avcodec_alloc_context3(codec);
+
+    video_sws_ctx = sws_getContext(screenWidth, screenHeight,
+                            AV_PIX_FMT_RGBA,
+                            screenWidth, screenHeight,
+                            AV_PIX_FMT_YUV420P,
+                            0, 0, 0, 0);
+    c->pix_fmt = AV_PIX_FMT_YUV420P;
+  }
+
+  
   c->codec_type = AVMEDIA_TYPE_VIDEO;
-  c->sw_pix_fmt = AV_PIX_FMT_RGB0;
-
   c->width = screenWidth;
   c->height = screenHeight;
   c->time_base = (AVRational){1, fps};
@@ -687,27 +748,11 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
   c->bit_rate = bit_rate;
   c->rc_max_rate = max_bitrate;
   c->rc_min_rate = min_bitrate;
-
-  av_opt_set(c->priv_data, "preset", preset.c_str(), 0);
-  av_opt_set(c->priv_data, "profile", profile.c_str(), 0);
-  av_opt_set(c->priv_data, "level", level.c_str(), 0);
-
   ret = avcodec_open2(c, codec, NULL);
   if (ret < 0) {
     std::cout << "Could not open avcodec" << std::endl;
     exit(1);
   }
-
-  m_memCpyStruct = (CUDA_MEMCPY2D_st*)malloc(sizeof(CUDA_MEMCPY2D_st));
-  m_memCpyStruct->srcXInBytes = 0;
-  m_memCpyStruct->srcY = 0;
-  m_memCpyStruct->srcMemoryType = CUmemorytype::CU_MEMORYTYPE_ARRAY;
-
-  m_memCpyStruct->dstXInBytes = 0;
-  m_memCpyStruct->dstY = 0;
-  m_memCpyStruct->dstMemoryType = CUmemorytype::CU_MEMORYTYPE_DEVICE;
-
-  std::cout << "Setting up output format..." << std::endl;
 
   AVOutputFormat* of = av_guess_format("mp4", 0, 0);
   avformat_alloc_output_context2(&ofmt_ctx, of, NULL, NULL);
@@ -733,6 +778,7 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
     std::cout << "Couldn't copy params" << std::endl;
     exit(0);
   }
+
   // unbind
   glBindVertexArray(0);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);

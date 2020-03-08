@@ -30,6 +30,8 @@
         #include <libavutil/hwcontext.h>
         #include <libavutil/hwcontext_cuda.h>
         #include <libswresample/swresample.h>
+        #include <libswscale/swscale.h>
+
     }
 #endif
 
@@ -102,6 +104,7 @@ class WebGLRenderingContext : public Napi::ObjectWrap<WebGLRenderingContext> {
     int have_audio = 0;
     AVFrame* audio_frame;
     struct SwrContext* audio_swr_ctx = NULL;
+    SwsContext * video_sws_ctx;
     AVStream* audio_stream = NULL;
 
     // OpenGL
@@ -125,6 +128,8 @@ class WebGLRenderingContext : public Napi::ObjectWrap<WebGLRenderingContext> {
     GLuint textureLocation;
     GLuint timeLocation;
 
+    bool has_hardware_support = true;
+    void setUpFramebuffers();
     AVFrame* alloc_audio_frame();
     void encode(AVFrame* frame, AVCodecContext* cod, AVStream* out, AVPacket* p);
 

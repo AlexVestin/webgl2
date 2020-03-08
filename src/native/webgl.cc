@@ -1290,16 +1290,11 @@ GL_METHOD(DrawArraysInstanced) { NAPI_ENV;
 
 
 GL_METHOD(DrawElementsInstanced) { NAPI_ENV;
-			std::cout << "mode" << std::endl;
-
 	REQ_INT32_ARG(0, mode);
 	REQ_INT32_ARG(1, count);
 	REQ_INT32_ARG(2, type);
 	REQ_OFFS_ARG(3, ptr);
 	REQ_INT32_ARG(4, primcount);
-
-
-
 
 	GLvoid *indices = reinterpret_cast<GLvoid*>(ptr);
 	glDrawElementsInstanced(mode, count, type, indices, primcount);
@@ -2047,10 +2042,7 @@ GL_METHOD(TexImage2D) { NAPI_ENV;
 GL_METHOD(CreateSampler) { NAPI_ENV;
 	GLuint samplers;
 	glGenSamplers(1, &samplers);
-
-	Napi::Object result = Napi::Object::New(env);
-	result.Set(Napi::String::New(env, "name"), Napi::Number::New(env, samplers));
-	return result;
+	RET_NUM(samplers);
 }
 
 GL_METHOD(SamplerParameteri) { NAPI_ENV;

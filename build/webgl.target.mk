@@ -141,6 +141,7 @@ LIBS := \
 	-lavformat \
 	-lavutil \
 	-lavcodec \
+	-lswscale \
 	-ljpeg
 
 $(obj).target/webgl.node: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))

@@ -24,6 +24,7 @@
         '-lavformat',
         '-lavutil',
         '-lavcodec',
+        '-lswscale',
         '-ljpeg'
       ],
       'library_dirs': [

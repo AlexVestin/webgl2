@@ -1,48 +1,13 @@
 "use strict";
 
-const getMethods = obj => {
-  let properties = new Set();
-  let currentObj = obj;
-  do {
-    Object.getOwnPropertyNames(currentObj).map(item => properties.add(item));
-  } while ((currentObj = Object.getPrototypeOf(currentObj)));
-  return [...properties.keys()];
-};
-/*
-const getProps = obj => {
-    let properties = new Set();
-    let currentObj = obj;
-    do {
-      Object.getOwnPropertyNames(currentObj).map(item => properties.add(item));
-    } while ((currentObj = Object.getPrototypeOf(currentObj)));
-    return [...properties.keys()].filter(item => typeof obj[item] === "function");
-  };
-*/
-let i = 0;
-var logFunction = function(obj, fn) {
-  return function() {
-    return obj[fn].apply(obj, [...arguments]);
-  };
-};
-
 const WebGLRenderingContext = require("../gl");
-function wrap(width, height) {
-  let origGl = new WebGLRenderingContext(width, height);
-  let gl = { ...origGl };
-
-  for (const key of getMethods(origGl)) {
-    if (typeof origGl[key] === "function") {
-      gl[key] = logFunction(origGl, key);
-    } else {
-      gl[key] = origGl[key];
-    }
-  }
-
+function wrap(gl) {
   gl.WebGLRenderingContext = function WebGLRenderingContext(_) {
     this._ = _;
   };
   gl.WebGLSampler = function WebGLSampler(_) {
     this._ = _;
+    this.name = _.name;
   };
 
   gl.WebGLProgram = function WebGLProgram(_) {
@@ -105,73 +70,93 @@ function wrap(width, height) {
 
   // Attrib
 
+  const _bindAttribLocation = gl.bindAttribLocation;
   gl.bindAttribLocation = (program, index, name) =>
-    origGl.bindAttribLocation(enforceId(program), index, name);
+    _bindAttribLocation(enforceId(program), index, name);
 
+  const _getActiveAttrib = gl.getActiveAttrib;
   gl.getActiveAttrib = (program, index) =>
-    new gl.WebGLActiveInfo(origGl.getActiveAttrib(enforceId(program), index));
+    new gl.WebGLActiveInfo(_getActiveAttrib(enforceId(program), index));
 
+  const _getAttribLocation = gl.getAttribLocation;
   gl.getAttribLocation = (program, name) =>
-    origGl.getAttribLocation(enforceId(program), name);
+    _getAttribLocation(enforceId(program), name);
 
+  const _vertexAttrib1fv = gl.vertexAttrib1fv;
   gl.vertexAttrib1fv = (indx, v) => {
-    return origGl.vertexAttrib1fv(indx, enforceF32(v));
+    return _vertexAttrib1fv(indx, enforceF32(v));
   };
 
+  const _vertexAttrib2fv = gl.vertexAttrib2fv;
   gl.vertexAttrib2fv = (indx, v) => {
-    return origGl.vertexAttrib2fv(indx, enforceF32(v));
+    return _vertexAttrib2fv(indx, enforceF32(v));
   };
 
+  const _vertexAttrib3fv = gl.vertexAttrib3fv;
   gl.vertexAttrib3fv = (indx, v) => {
-    return origGl.vertexAttrib3fv(indx, enforceF32(v));
+    return _vertexAttrib3fv(indx, enforceF32(v));
   };
 
+  const _vertexAttrib4fv = gl.vertexAttrib4fv;
   gl.vertexAttrib4fv = (indx, v) => {
-    return origGl.vertexAttrib4fv(indx, enforceF32(v));
+    return _vertexAttrib4fv(indx, enforceF32(v));
   };
 
   // VBO
 
-  gl.createBuffer = () => new gl.WebGLBuffer(origGl.createBuffer());
-  gl.deleteBuffer = buffer => origGl.deleteBuffer(enforceId(buffer));
-  gl.isBuffer = buffer => origGl.isBuffer(enforceId(buffer));
+  const _createBuffer = gl.createBuffer;
+  gl.createBuffer = () => new gl.WebGLBuffer(_createBuffer());
 
-  gl.bindBuffer = (target, buffer) =>
-    origGl.bindBuffer(target, enforceId(buffer));
+  const _deleteBuffer = gl.deleteBuffer;
+  gl.deleteBuffer = buffer => _deleteBuffer(enforceId(buffer));
 
+  const _isBuffer = gl.isBuffer;
+  gl.isBuffer = buffer => _isBuffer(enforceId(buffer));
+
+  const _bindBuffer = gl.bindBuffer;
+  gl.bindBuffer = (target, buffer) => _bindBuffer(target, enforceId(buffer));
+
+  const _bindBufferBase = gl.bindBufferBase;
   gl.bindBufferBase = (target, index, buffer) =>
-    origGl.bindBufferBase(target, index, enforceId(buffer));
+    _bindBufferBase(target, index, enforceId(buffer));
 
+  const _bindBufferRange = gl.bindBufferRange;
   gl.bindBufferRange = (target, index, buffer, offset, size) =>
-    origGl.bindBufferRange(target, index, enforceId(buffer), offset, size);
+    _bindBufferRange(target, index, enforceId(buffer), offset, size);
 
   // FBO
 
-  gl.createFramebuffer = () =>
-    new gl.WebGLFramebuffer(origGl.createFramebuffer());
-  gl.deleteFramebuffer = framebuffer =>
-    origGl.deleteFramebuffer(enforceId(framebuffer));
-  gl.isFramebuffer = framebuffer =>
-    origGl.isFramebuffer(enforceId(framebuffer));
-  gl.bindFramebuffer = (target, framebuffer) => {
-    origGl.bindFramebuffer(target, enforceId(framebuffer));
-  };
+  const _createFramebuffer = gl.createFramebuffer;
+  gl.createFramebuffer = () => new gl.WebGLFramebuffer(_createFramebuffer());
 
+  const _deleteFramebuffer = gl.deleteFramebuffer;
+  gl.deleteFramebuffer = framebuffer =>
+    _deleteFramebuffer(enforceId(framebuffer));
+
+  const _isFramebuffer = gl.isFramebuffer;
+  gl.isFramebuffer = framebuffer => _isFramebuffer(enforceId(framebuffer));
+
+  const _bindFramebuffer = gl.bindFramebuffer;
+  gl.bindFramebuffer = (target, framebuffer) =>
+    _bindFramebuffer(target, enforceId(framebuffer));
+
+  const _framebufferRenderbuffer = gl.framebufferRenderbuffer;
   gl.framebufferRenderbuffer = (
     target,
     attachment,
     renderbuffertarget,
     renderbuffer
   ) =>
-    origGl.framebufferRenderbuffer(
+    _framebufferRenderbuffer(
       target,
       attachment,
       renderbuffertarget,
       enforceId(renderbuffer)
     );
 
+  const _framebufferTexture2D = gl.framebufferTexture2D;
   gl.framebufferTexture2D = (target, attachment, textarget, texture, level) =>
-    origGl.framebufferTexture2D(
+    _framebufferTexture2D(
       target,
       attachment,
       textarget,
@@ -181,73 +166,102 @@ function wrap(width, height) {
 
   // Program
 
-  gl.createProgram = () => new gl.WebGLProgram(origGl.createProgram());
-  gl.deleteProgram = program => origGl.deleteProgram(enforceId(program));
-  gl.isProgram = program => origGl.isProgram(enforceId(program));
+  const _createProgram = gl.createProgram;
+  gl.createProgram = () => new gl.WebGLProgram(_createProgram());
 
-  gl.getProgramInfoLog = program =>
-    origGl.getProgramInfoLog(enforceId(program));
+  const _deleteProgram = gl.deleteProgram;
+  gl.deleteProgram = program => _deleteProgram(enforceId(program));
 
+  const _isProgram = gl.isProgram;
+  gl.isProgram = program => _isProgram(enforceId(program));
+
+  const _getProgramInfoLog = gl.getProgramInfoLog;
+  gl.getProgramInfoLog = program => _getProgramInfoLog(enforceId(program));
+
+  const _getProgramParameter = gl.getProgramParameter;
   gl.getProgramParameter = (program, pname) =>
-    origGl.getProgramParameter(enforceId(program), pname);
+    _getProgramParameter(enforceId(program), pname);
 
-  gl.linkProgram = program => origGl.linkProgram(enforceId(program));
+  const _linkProgram = gl.linkProgram;
+  gl.linkProgram = program => _linkProgram(enforceId(program));
 
-  gl.useProgram = program => origGl.useProgram(enforceId(program));
+  const _useProgram = gl.useProgram;
+  gl.useProgram = program => _useProgram(enforceId(program));
 
-  gl.validateProgram = program => origGl.validateProgram(enforceId(program));
+  const _validateProgram = gl.validateProgram;
+  gl.validateProgram = program => _validateProgram(enforceId(program));
 
   // RBO
 
-  gl.createRenderbuffer = () =>
-    new gl.WebGLRenderbuffer(origGl.createRenderbuffer());
+  const _createRenderbuffer = gl.createRenderbuffer;
+  gl.createRenderbuffer = () => new gl.WebGLRenderbuffer(_createRenderbuffer());
+
+  const _deleteRenderbuffer = gl.deleteRenderbuffer;
   gl.deleteRenderbuffer = renderbuffer =>
-    origGl.deleteRenderbuffer(enforceId(renderbuffer));
-  gl.isRenderbuffer = renderbuffer =>
-    origGl.isRenderbuffer(enforceId(renderbuffer));
+    _deleteRenderbuffer(enforceId(renderbuffer));
+
+  const _isRenderbuffer = gl.isRenderbuffer;
+  gl.isRenderbuffer = renderbuffer => _isRenderbuffer(enforceId(renderbuffer));
+
+  const _bindRenderbuffer = gl.bindRenderbuffer;
   gl.bindRenderbuffer = (target, renderbuffer) =>
-    origGl.bindRenderbuffer(target, enforceId(renderbuffer));
+    _bindRenderbuffer(target, enforceId(renderbuffer));
 
   // Sampler
+  const _createSampler = gl.createSampler;
   gl.createSampler = () => {
-    return new gl.WebGLSampler(origGl.createSampler());
+    const samp = new gl.WebGLSampler(_createSampler());
+    return samp;
   };
 
+  const _samplerParameteri = gl.samplerParameteri;
   gl.samplerParameteri = (sampler, pname, param) => {
-    origGl.samplerParameteri(enforceId(sampler), pname, param);
+    _samplerParameteri(sampler.name, pname, param);
   };
 
+  const _bindSampler = gl.bindSampler;
   gl.bindSampler = (unit, sampler) => {
-    origGl.bindSampler(unit, enforceId(sampler));
+    _bindSampler(enforceId(unit), sampler.name);
   };
 
   // Shader
 
-  gl.createShader = type => new gl.WebGLShader(origGl.createShader(type));
-  gl.deleteShader = shader => origGl.deleteShader(enforceId(shader));
+  const _createShader = gl.createShader;
+  gl.createShader = type => new gl.WebGLShader(_createShader(type));
 
-  gl.isShader = shader => origGl.isShader(enforceId(shader));
+  const _deleteShader = gl.deleteShader;
+  gl.deleteShader = shader => _deleteShader(enforceId(shader));
 
+  const _isShader = gl.isShader;
+  gl.isShader = shader => _isShader(enforceId(shader));
+
+  const _attachShader = gl.attachShader;
   gl.attachShader = (program, shader) =>
-    origGl.attachShader(enforceId(program), enforceId(shader));
+    _attachShader(enforceId(program), enforceId(shader));
 
-  gl.compileShader = shader => origGl.compileShader(enforceId(shader));
+  const _compileShader = gl.compileShader;
+  gl.compileShader = shader => _compileShader(enforceId(shader));
 
+  const _detachShader = gl.detachShader;
   gl.detachShader = (program, shader) =>
-    origGl.detachShader(enforceId(program), enforceId(shader));
+    _detachShader(enforceId(program), enforceId(shader));
 
-  gl.getAttachedShaders = program =>
-    origGl.getAttachedShaders(enforceId(program));
+  const _getAttachedShaders = gl.getAttachedShaders;
+  gl.getAttachedShaders = program => _getAttachedShaders(enforceId(program));
 
-  gl.getShaderInfoLog = shader => origGl.getShaderInfoLog(enforceId(shader));
+  const _getShaderInfoLog = gl.getShaderInfoLog;
+  gl.getShaderInfoLog = shader => _getShaderInfoLog(enforceId(shader));
 
+  const _getShaderParameter = gl.getShaderParameter;
   gl.getShaderParameter = (shader, pname) =>
-    origGl.getShaderParameter(enforceId(shader), pname);
+    _getShaderParameter(enforceId(shader), pname);
 
-  gl.getShaderSource = shader => origGl.getShaderSource(enforceId(shader));
+  const _getShaderSource = gl.getShaderSource;
+  gl.getShaderSource = shader => _getShaderSource(enforceId(shader));
 
+  gl._shaderSource = gl.shaderSource;
   gl.shaderSource = (shaderId, code) =>
-    origGl.shaderSource(
+    gl._shaderSource(
       enforceId(shaderId),
       code
       /*code.replace(
@@ -263,12 +277,20 @@ function wrap(width, height) {
 
   // Texture
 
-  gl.createTexture = () => new gl.WebGLTexture(origGl.createTexture());
-  gl.deleteTexture = texture => origGl.deleteTexture(enforceId(texture));
-  gl.isTexture = texture => origGl.isTexture(enforceId(texture));
-  gl.bindTexture = (target, texture) =>
-    origGl.bindTexture(target, enforceId(texture));
+  const _createTexture = gl.createTexture;
+  gl.createTexture = () => new gl.WebGLTexture(_createTexture());
 
+  const _deleteTexture = gl.deleteTexture;
+  gl.deleteTexture = texture => _deleteTexture(enforceId(texture));
+
+  const _isTexture = gl.isTexture;
+  gl.isTexture = texture => _isTexture(enforceId(texture));
+
+  const _bindTexture = gl.bindTexture;
+  gl.bindTexture = (target, texture) =>
+    _bindTexture(target, enforceId(texture));
+
+  const _texImage2D = gl.texImage2D;
   gl.texImage2D = function(
     target,
     level,
@@ -285,7 +307,7 @@ function wrap(width, height) {
       pixels = border;
       type = height;
       format = width;
-      return origGl.texImage2D(
+      return _texImage2D(
         target,
         level,
         internalformat,
@@ -299,7 +321,7 @@ function wrap(width, height) {
     }
 
     if (arguments.length === 9) {
-      return origGl.texImage2D(
+      return _texImage2D(
         target,
         level,
         internalformat,
@@ -317,132 +339,151 @@ function wrap(width, height) {
 
   // Uniform
 
+  const _getActiveUniform = gl.getActiveUniform;
   gl.getActiveUniform = (program, index) =>
-    new gl.WebGLActiveInfo(origGl.getActiveUniform(enforceId(program), index));
+    new gl.WebGLActiveInfo(_getActiveUniform(enforceId(program), index));
 
+  const _getUniform = gl.getUniform;
   gl.getUniform = (program, location) =>
-    origGl.getUniform(enforceId(program), enforceId(location));
+    _getUniform(enforceId(program), enforceId(location));
 
+  const _getUniformLocation = gl.getUniformLocation;
   gl.getUniformLocation = (program, name) =>
-    new gl.WebGLUniformLocation(
-      origGl.getUniformLocation(enforceId(program), name)
-    );
+    new gl.WebGLUniformLocation(_getUniformLocation(enforceId(program), name));
 
-  gl.uniform1f = (location, x) => origGl.uniform1f(enforceId(location), x);
+  const _uniform1f = gl.uniform1f;
+  gl.uniform1f = (location, x) => _uniform1f(enforceId(location), x);
+
+  const _uniform1fv = gl.uniform1fv;
   gl.uniform1fv = (location, v) => {
-    return origGl.uniform1fv(enforceId(location), enforceF32(v));
+    return _uniform1fv(enforceId(location), enforceF32(v));
   };
 
+  const _uniform1i = gl.uniform1i;
   gl.uniform1i = (location, x) =>
-    origGl.uniform1i(enforceId(location), enforceBool(x));
+    _uniform1i(enforceId(location), enforceBool(x));
 
+  const _uniform1iv = gl.uniform1iv;
   gl.uniform1iv = (location, v) => {
-    return origGl.uniform1iv(enforceId(location), enforceF32(v));
+    return _uniform1iv(enforceId(location), enforceF32(v));
   };
 
-  gl.uniform2f = (location, x, y) =>
-    origGl.uniform2f(enforceId(location), x, y);
+  const _uniform2f = gl.uniform2f;
+  gl.uniform2f = (location, x, y) => _uniform2f(enforceId(location), x, y);
 
+  const _uniform2fv = gl.uniform2fv;
   gl.uniform2fv = (location, v) => {
-    return origGl.uniform2fv(enforceId(location), enforceF32(v));
+    return _uniform2fv(enforceId(location), enforceF32(v));
   };
 
-  gl.uniform2i = (location, x, y) =>
-    origGl.uniform2i(enforceId(location), x, y);
+  const _uniform2i = gl.uniform2i;
+  gl.uniform2i = (location, x, y) => _uniform2i(enforceId(location), x, y);
 
+  const _uniform2iv = gl.uniform2iv;
   gl.uniform2iv = (location, v) => {
-    return origGl.uniform2iv(enforceId(location), enforceF32(v));
+    return _uniform2iv(enforceId(location), enforceF32(v));
   };
 
+  const _uniform3f = gl.uniform3f;
   gl.uniform3f = (location, x, y, z) =>
-    origGl.uniform3f(enforceId(location), x, y, z);
+    _uniform3f(enforceId(location), x, y, z);
 
+  const _uniform3fv = gl.uniform3fv;
   gl.uniform3fv = (location, v) => {
-    return origGl.uniform3fv(enforceId(location), enforceF32(v));
+    return _uniform3fv(enforceId(location), enforceF32(v));
   };
 
+  const _uniform3i = gl.uniform3i;
   gl.uniform3i = (location, x, y, z) =>
-    origGl.uniform3i(enforceId(location), x, y, z);
+    _uniform3i(enforceId(location), x, y, z);
 
+  const _uniform3iv = gl.uniform3iv;
   gl.uniform3iv = (location, v) => {
-    return origGl.uniform3iv(enforceId(location), enforceF32(v));
+    return _uniform3iv(enforceId(location), enforceF32(v));
   };
 
+  const _uniform4f = gl.uniform4f;
   gl.uniform4f = (location, x, y, z, w) =>
-    origGl.uniform4f(enforceId(location), x, y, z, w);
+    _uniform4f(enforceId(location), x, y, z, w);
 
+  const _uniform4fv = gl.uniform4fv;
   gl.uniform4fv = (location, v) => {
-    return origGl.uniform4fv(enforceId(location), enforceF32(v));
+    return _uniform4fv(enforceId(location), enforceF32(v));
   };
 
+  const _uniform4i = gl.uniform4i;
   gl.uniform4i = (location, x, y, z, w) =>
-    origGl.uniform4i(enforceId(location), x, y, z, w);
+    _uniform4i(enforceId(location), x, y, z, w);
 
+  const _uniform4iv = gl.uniform4iv;
   gl.uniform4iv = (location, v) => {
-    return origGl.uniform4iv(enforceId(location), enforceF32(v));
+    return _uniform4iv(enforceId(location), enforceF32(v));
   };
 
+  const _uniformMatrix2fv = gl.uniformMatrix2fv;
   gl.uniformMatrix2fv = (location, transpose, v) => {
-    return origGl.uniformMatrix2fv(
-      enforceId(location),
-      transpose,
-      enforceF32(v)
-    );
+    return _uniformMatrix2fv(enforceId(location), transpose, enforceF32(v));
   };
 
+  const _uniformMatrix3fv = gl.uniformMatrix3fv;
   gl.uniformMatrix3fv = (location, transpose, v) => {
-    return origGl.uniformMatrix3fv(
-      enforceId(location),
-      transpose,
-      enforceF32(v)
-    );
+    return _uniformMatrix3fv(enforceId(location), transpose, enforceF32(v));
   };
 
+  const _uniformMatrix4fv = gl.uniformMatrix4fv;
   gl.uniformMatrix4fv = (location, transpose, v) => {
-    return origGl.uniformMatrix4fv(
-      enforceId(location),
-      transpose,
-      enforceF32(v)
-    );
+    return _uniformMatrix4fv(enforceId(location), transpose, enforceF32(v));
   };
 
   // VAO
 
-  gl.createVertexArray = () =>
-    new gl.WebGLVertexArray(origGl.createVertexArray());
+  const _createVertexArray = gl.createVertexArray;
+  gl.createVertexArray = () => new gl.WebGLVertexArray(_createVertexArray());
 
-  gl.deleteVertexArray = vao => origGl.deleteVertexArray(enforceId(vao));
+  const _deleteVertexArray = gl.deleteVertexArray;
+  gl.deleteVertexArray = vao => _deleteVertexArray(enforceId(vao));
 
-  gl.isVertexArray = vao => origGl.isVertexArray(enforceId(vao));
+  const _isVertexArray = gl.isVertexArray;
+  gl.isVertexArray = vao => _isVertexArray(enforceId(vao));
 
-  gl.bindVertexArray = vao => origGl.bindVertexArray(enforceId(vao));
+  const _bindVertexArray = gl.bindVertexArray;
+  gl.bindVertexArray = vao => _bindVertexArray(enforceId(vao));
 
   // Transform feedback
+
+  const _createTransformFeedback = gl.createTransformFeedback;
   gl.createTransformFeedback = () =>
-    new gl.WebGLTransformFeedback(origGl.createTransformFeedback());
+    new gl.WebGLTransformFeedback(_createTransformFeedback());
 
+  const _deleteTransformFeedback = gl.deleteTransformFeedback;
   gl.deleteTransformFeedback = transformFeedback =>
-    origGl.deleteTransformFeedback(enforceId(transformFeedback));
+    _deleteTransformFeedback(enforceId(transformFeedback));
 
+  const _isTransformFeedback = gl.isTransformFeedback;
   gl.isTransformFeedback = transformFeedback =>
-    origGl.isTransformFeedback(enforceId(transformFeedback));
+    _isTransformFeedback(enforceId(transformFeedback));
 
+  const _bindTransformFeedback = gl.bindTransformFeedback;
   gl.bindTransformFeedback = (target, transformFeedback) =>
-    origGl.bindTransformFeedback(target, enforceId(transformFeedback));
+    _bindTransformFeedback(target, enforceId(transformFeedback));
 
+  const _transformFeedbackVaryings = gl.transformFeedbackVaryings;
   gl.transformFeedbackVaryings = (program, varyings, mode) =>
-    origGl.transformFeedbackVaryings(enforceId(program), varyings, mode);
+    _transformFeedbackVaryings(enforceId(program), varyings, mode);
 
+  const _getTransformFeedbackVarying = gl.getTransformFeedbackVarying;
   gl.getTransformFeedbackVarying = (program, location) =>
     new gl.WebGLActiveInfo(
-      origGl.getTransformFeedbackVarying(enforceId(program), location)
+      _getTransformFeedbackVarying(enforceId(program), location)
     );
 
   // Misc OpenGL Functions
+
+  const _getParameter = gl.getParameter;
   gl.getParameter = pname => {
     switch (pname) {
-      case 0x1f02:
-        return "OpenGL ES 3.0 Chromium";
+      case gl.VERSION:
+        return "OpenGL ES 2.0 Chromium";
       case 0x9245:
         return origGl.getParameter(0x1f00); // UNMASKED VENDOR
       case 0x9246:
@@ -455,15 +496,11 @@ function wrap(width, height) {
         return origGl.getParameter(pname);
     }
   };
-  gl.pixelStorei = (pname, param) => {
-    origGl.pixelStorei(pname, enforceBool(param));
-  };
+  const _pixelStorei = gl.pixelStorei;
+  gl.pixelStorei = (pname, param) => _pixelStorei(pname, enforceBool(param));
 
-  gl.drawElements = (a, b, c, d) => {
-    origGl.drawElements(a, b, c, d);
-  };
-
-  gl.viewport = (x, y, width, height) => origGl.viewport(x, y, width, height);
+  const _viewport = gl.viewport;
+  gl.viewport = (x, y, width, height) => _viewport(x, y, width, height);
 
   Object.defineProperty(gl, "drawingBufferWidth", {
     get: () => gl.getParameter(gl.VIEWPORT)[2]
@@ -477,12 +514,9 @@ function wrap(width, height) {
   const extensions = {
     ANGLE_instanced_arrays: {
       VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE: 0x88fe,
-      drawArraysInstancedANGLE: (mode, first, count, instanceCount) =>
-        origGl.drawArraysInstanced(mode, first, count, instanceCount),
-      drawElementsInstancedANGLE: (mode, count, type, offset, instanceCount) =>
-        origGl.drawElementsInstanced(mode, count, type, offset, instanceCount),
-      vertexAttribDivisorANGLE: (index, divisor) =>
-        origGl.vertexAttribDivisor(index, divisor)
+      drawArraysInstancedANGLE: gl.drawArraysInstanced,
+      drawElementsInstancedANGLE: gl.drawElementsInstanced,
+      vertexAttribDivisorANGLE: gl.vertexAttribDivisor
     },
     EXT_blend_minmax: {
       MIN_EXT: 0x8007,
@@ -536,11 +570,10 @@ function wrap(width, height) {
     OES_texture_half_float_linear: {},
     OES_vertex_array_object: {
       VERTEX_ARRAY_BINDING_OES: 0x85b5,
-      createVertexArrayOES: () =>
-        new gl.WebGLVertexArray(origGl.createVertexArray()),
-      deleteVertexArrayOES: vao => origGl.deleteVertexArray(enforceId(vao)),
-      isVertexArrayOES: vao => origGl.isVertexArray(enforceId(vao)),
-      bindVertexArrayOES: v => origGl.bindVertexArray(enforceId(v))
+      createVertexArrayOES: gl.createVertexArray,
+      deleteVertexArrayOES: gl.deleteVertexArray,
+      isVertexArrayOES: gl.isVertexArray,
+      bindVertexArrayOES: gl.bindVertexArray
     },
     WEBGL_color_buffer_float: {
       RGBA32F_EXT: 0x8814,
@@ -669,8 +702,9 @@ function wrap(width, height) {
     }
   };
 
+  const _getSupportedExtensions = gl.getSupportedExtensions;
   gl.getSupportedExtensions = () => {
-    gl._realExtensions = origGl.getSupportedExtensions().split(" ");
+    gl._realExtensions = _getSupportedExtensions().split(" ");
     return Object.keys(extensions);
   };
 
@@ -681,4 +715,5 @@ function wrap(width, height) {
   return gl;
 }
 
-module.exports = wrap;
+const wrapped = wrap(WebGLRenderingContext);
+module.exports = wrapped;
