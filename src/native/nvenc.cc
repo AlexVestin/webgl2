@@ -3,7 +3,7 @@
 #include <iostream>
 #include "jpeglib.h"
 
-#define ANGLE 1
+#define ANGLE 0
 
 #define GL_METHOD(method_name) Napi::Value WebGLRenderingContext:: method_name \
    (const Napi::CallbackInfo& info)
@@ -676,7 +676,7 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
     frameCtxPtr = (AVHWFramesContext*)(m_avBufferRefFrame->data);
     frameCtxPtr->width = screenWidth;
     frameCtxPtr->height = screenHeight;
-    frameCtxPtr->sw_format = AV_PIX_FMT_RGB0;
+    frameCtxPtr->sw_format = AV_PIX_FMT_0RGB32;
     frameCtxPtr->format = AV_PIX_FMT_CUDA;
 
     ret = av_hwframe_ctx_init(m_avBufferRefFrame);
@@ -709,7 +709,7 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
     // Assign some hardware accel specific data to AvCodecContext
     c->hw_device_ctx = m_avBufferRefDevice;
     c->pix_fmt = AV_PIX_FMT_CUDA;
-    c->sw_pix_fmt = AV_PIX_FMT_RGB0;
+    c->sw_pix_fmt = AV_PIX_FMT_0RGB32;
     c->hw_frames_ctx = m_avBufferRefFrame;
 
     av_opt_set(c->priv_data, "preset", preset.c_str(), 0);

@@ -15,7 +15,10 @@
       'include_dirs': [
         "<!@(node -p \"require('node-addon-api').include\")",
         '/opt/cuda/targets/x86_64-linux/include',
-        "/opt/angle"
+        "/opt/angle",
+        "/opt/angle/angle/include",
+        "/usr/local/cuda-10.2/targets/x86_64-linux/include",
+        "/home/alex_vestin/ffmpeg_build/include/"
       ],
       'libraries': [
         '-lEGL',
@@ -28,7 +31,8 @@
         '-ljpeg'
       ],
       'library_dirs': [
-        "/opt/angle/angle/out/Release"
+        "/opt/angle/angle/out/Release",
+	"/home/alex_vestin/ffmpeg_build/lib/"
       ],
       'defines': [ 'NAPI_DISABLE_CPP_EXCEPTIONS' ],
     }
