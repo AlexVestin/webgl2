@@ -86,13 +86,14 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 		1,
 		&num_config) ||
 		num_config != 1) {
-		std::cerr << "Unable to initialize" <<std::endl;
+		std::cerr << "Unable to initialize with config" <<std::endl;
 		exit(1);
 	}
 
 	EGLint config_renderable_type;
 	if (!eglGetConfigAttrib(display, config, EGL_RENDERABLE_TYPE, &config_renderable_type)) {
 		// TODO error handling
+		std::cerr << "Unable to get config attrib" << std::endl;
 		exit(1);
 	}
 
@@ -126,7 +127,7 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 	context_attributes.push_back(EGL_NONE);
 	context = eglCreateContext(display, config, EGL_NO_CONTEXT, context_attributes.data());
 	if (context == EGL_NO_CONTEXT) {
-		std::cerr << "Unable to initialize" <<std::endl;
+		std::cerr << "Unable to initialize context" <<std::endl;
 		exit(1);
 	}
 
@@ -137,13 +138,13 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 	};
 	surface = eglCreatePbufferSurface(display, config, surfaceAttribs);
 	if (surface == EGL_NO_SURFACE) {
-		std::cerr << "Unable to initialize" <<std::endl;
+		std::cerr << "Unable to initialize pbuffersurface" <<std::endl;
 		exit(1);
 	}
 
 	//Set active
 	if (!eglMakeCurrent(display, surface, surface, context)) {
-		std::cerr << "Unable to initialize" <<std::endl;
+		std::cerr << "Unable to make context current" <<std::endl;
 		exit(1);
 	}
 
