@@ -12,8 +12,6 @@ DEFS_Debug := \
 	'-D_LARGEFILE_SOURCE' \
 	'-D_FILE_OFFSET_BITS=64' \
 	'-D__STDC_FORMAT_MACROS' \
-	'-DOPENSSL_NO_PINSHARED' \
-	'-DOPENSSL_THREADS' \
 	'-DNAPI_DISABLE_CPP_EXCEPTIONS' \
 	'-DBUILDING_NODE_EXTENSION' \
 	'-DDEBUG' \
@@ -40,14 +38,14 @@ CFLAGS_CC_Debug := \
 	-std=gnu++1y
 
 INCS_Debug := \
-	-I/home/alex_vestin/.cache/node-gyp/12.16.1/include/node \
-	-I/home/alex_vestin/.cache/node-gyp/12.16.1/src \
-	-I/home/alex_vestin/.cache/node-gyp/12.16.1/deps/openssl/config \
-	-I/home/alex_vestin/.cache/node-gyp/12.16.1/deps/openssl/openssl/include \
-	-I/home/alex_vestin/.cache/node-gyp/12.16.1/deps/uv/include \
-	-I/home/alex_vestin/.cache/node-gyp/12.16.1/deps/zlib \
-	-I/home/alex_vestin/.cache/node-gyp/12.16.1/deps/v8/include \
-	-I/home/alex_vestin/coding-server/webgl2/node_modules/node-addon-api \
+	-I/home/alex/.cache/node-gyp/12.16.1/include/node \
+	-I/home/alex/.cache/node-gyp/12.16.1/src \
+	-I/home/alex/.cache/node-gyp/12.16.1/deps/openssl/config \
+	-I/home/alex/.cache/node-gyp/12.16.1/deps/openssl/openssl/include \
+	-I/home/alex/.cache/node-gyp/12.16.1/deps/uv/include \
+	-I/home/alex/.cache/node-gyp/12.16.1/deps/zlib \
+	-I/home/alex/.cache/node-gyp/12.16.1/deps/v8/include \
+	-I/home/alex/prog/webgl/node_modules/node-addon-api \
 	-I/opt/cuda/targets/x86_64-linux/include \
 	-I/opt/angle \
 	-I/opt/angle/angle/include \
@@ -64,8 +62,6 @@ DEFS_Release := \
 	'-D_LARGEFILE_SOURCE' \
 	'-D_FILE_OFFSET_BITS=64' \
 	'-D__STDC_FORMAT_MACROS' \
-	'-DOPENSSL_NO_PINSHARED' \
-	'-DOPENSSL_THREADS' \
 	'-DNAPI_DISABLE_CPP_EXCEPTIONS' \
 	'-DBUILDING_NODE_EXTENSION'
 
@@ -89,14 +85,14 @@ CFLAGS_CC_Release := \
 	-std=gnu++1y
 
 INCS_Release := \
-	-I/home/alex_vestin/.cache/node-gyp/12.16.1/include/node \
-	-I/home/alex_vestin/.cache/node-gyp/12.16.1/src \
-	-I/home/alex_vestin/.cache/node-gyp/12.16.1/deps/openssl/config \
-	-I/home/alex_vestin/.cache/node-gyp/12.16.1/deps/openssl/openssl/include \
-	-I/home/alex_vestin/.cache/node-gyp/12.16.1/deps/uv/include \
-	-I/home/alex_vestin/.cache/node-gyp/12.16.1/deps/zlib \
-	-I/home/alex_vestin/.cache/node-gyp/12.16.1/deps/v8/include \
-	-I/home/alex_vestin/coding-server/webgl2/node_modules/node-addon-api \
+	-I/home/alex/.cache/node-gyp/12.16.1/include/node \
+	-I/home/alex/.cache/node-gyp/12.16.1/src \
+	-I/home/alex/.cache/node-gyp/12.16.1/deps/openssl/config \
+	-I/home/alex/.cache/node-gyp/12.16.1/deps/openssl/openssl/include \
+	-I/home/alex/.cache/node-gyp/12.16.1/deps/uv/include \
+	-I/home/alex/.cache/node-gyp/12.16.1/deps/zlib \
+	-I/home/alex/.cache/node-gyp/12.16.1/deps/v8/include \
+	-I/home/alex/prog/webgl/node_modules/node-addon-api \
 	-I/opt/cuda/targets/x86_64-linux/include \
 	-I/opt/angle \
 	-I/opt/angle/angle/include \

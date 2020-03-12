@@ -9,6 +9,12 @@
    (const Napi::CallbackInfo& info)
 
 
+void logError(int errnum) {
+  static char str[AV_ERROR_MAX_STRING_SIZE];
+	memset(str, 0, sizeof(str));
+	printf("Error occured: %s\n", av_make_error_string(str, AV_ERROR_MAX_STRING_SIZE, errnum));
+}
+
 void write_to_img(std::string name, int screenWidth, int screenHeight) {
   const int num_components = 4;
   unsigned char* pdata = new unsigned char[screenWidth * screenHeight * num_components];
@@ -662,6 +668,7 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
   if (ret < 0) {
     std::cerr << "Couldn't create hw_frame_ctx: " << ret << std::endl;
     has_hardware_support = false;
+    logError(ret);
     //exit(1);
   }
   
@@ -682,6 +689,7 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
     ret = av_hwframe_ctx_init(m_avBufferRefFrame);
     if (ret < 0) {
       std::cerr << "Couldn't initialize hw_frame_ctx: " << ret << std::endl;
+      logError(ret);
       exit(1);
     }
   
@@ -695,6 +703,7 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
                                     CU_GRAPHICS_REGISTER_FLAGS_READ_ONLY);
     if (res != 0) {
         std::cout << "failed to initialize image: " << native_texture_id  << std::endl;
+        logError(ret);
         exit(1);
     } 
 
@@ -751,6 +760,8 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
   ret = avcodec_open2(c, codec, NULL);
   if (ret < 0) {
     std::cout << "Could not open avcodec" << std::endl;
+    logError(ret);
+
     exit(1);
   }
 
@@ -758,12 +769,15 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
   avformat_alloc_output_context2(&ofmt_ctx, of, NULL, NULL);
   if (!ofmt_ctx) {
     av_log(NULL, AV_LOG_ERROR, "Could not create output context\n");
+    logError(ret);
+
     exit(1);
   }
 
   video_stream = avformat_new_stream(ofmt_ctx, NULL);
   if (!video_stream) {
     std::cout << "error making stream\n" << std::endl;
+    logError(ret);
     exit(1);
   }
 
@@ -776,6 +790,7 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
 
   if (ret < 0) {
     std::cout << "Couldn't copy params" << std::endl;
+    logError(ret);
     exit(0);
   }
 
@@ -796,6 +811,7 @@ GL_METHOD(NvencOpen) { NAPI_ENV;
     avio_open(&ofmt_ctx->pb, filename.c_str(), AVIO_FLAG_WRITE);
     if(!ofmt_ctx) {
         std::cerr << "couldn't open out_format_context" << std::endl;
+        
         exit(1);
     }
 
@@ -803,6 +819,9 @@ GL_METHOD(NvencOpen) { NAPI_ENV;
     
     if (ret < 0) {
         printf("Couldnt write header\n");
+
+        logError(ret);
+
         exit(1);
     }
     RET_UNDEFINED;
