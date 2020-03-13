@@ -51,7 +51,7 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 		std::cout << "Using default display" << std::endl;
 		display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 		if (display == EGL_NO_DISPLAY) {
-		std::cerr << "Unable to initialize" <<std::endl;
+		std::cerr << "Unable to initialize display" <<std::endl;
 		exit(1);
 		}
 	}
@@ -61,7 +61,7 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 
 	//Initialize EGL
 	if (!eglInitialize(display, &major, &minor)) {
-		std::cerr << "Unable to initialize" <<std::endl;
+		std::cerr << "Unable to initialize egl versions" <<std::endl;
 		exit(1);
 	}
 	//Save display
@@ -153,8 +153,6 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 	std::cout << glGetString(GL_RENDERER) << std::endl;
 	std::cout << glGetString(GL_VERSION) << std::endl;
 	std::cout << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
-
-	//initPointers();
 }
 
 

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const getMethods = obj => {
   let properties = new Set();
@@ -18,20 +18,21 @@ const getProps = obj => {
     return [...properties.keys()].filter(item => typeof obj[item] === "function");
   };
 */
-let i = 0;
 var logFunction = function(obj, fn) {
   return function() {
-    return obj[fn].apply(obj, [...arguments]);
+    const ret = obj[fn].apply(obj, [...arguments]);
+    console.log(fn, [...arguments], ret);
+    return ret;
   };
 };
 
-const WebGLRenderingContext = require("../gl");
+const WebGLRenderingContext = require('../gl');
 function wrap(width, height) {
   let origGl = new WebGLRenderingContext(width, height);
   let gl = { ...origGl };
 
   for (const key of getMethods(origGl)) {
-    if (typeof origGl[key] === "function") {
+    if (typeof origGl[key] === 'function') {
       gl[key] = logFunction(origGl, key);
     } else {
       gl[key] = origGl[key];
@@ -99,7 +100,7 @@ function wrap(width, height) {
 
   const enforceId = x => (x ? x._ : 0);
 
-  const enforceBool = x => (typeof x === "boolean" ? (x ? 1 : 0) : x);
+  const enforceBool = x => (typeof x === 'boolean' ? (x ? 1 : 0) : x);
 
   ////////////////////////////////////////////////////////////////////////////////
 
@@ -161,13 +162,13 @@ function wrap(width, height) {
     target,
     attachment,
     renderbuffertarget,
-    renderbuffer
+    renderbuffer,
   ) =>
     origGl.framebufferRenderbuffer(
       target,
       attachment,
       renderbuffertarget,
-      enforceId(renderbuffer)
+      enforceId(renderbuffer),
     );
 
   gl.framebufferTexture2D = (target, attachment, textarget, texture, level) =>
@@ -176,7 +177,7 @@ function wrap(width, height) {
       attachment,
       textarget,
       enforceId(texture),
-      level
+      level,
     );
 
   // Program
@@ -249,7 +250,7 @@ function wrap(width, height) {
   gl.shaderSource = (shaderId, code) =>
     origGl.shaderSource(
       enforceId(shaderId),
-      code
+      code,
       /*code.replace(
             /^\s*?(#version|precision).*?($|;)/gm, ''
         ).replace(
@@ -278,7 +279,7 @@ function wrap(width, height) {
     border,
     format,
     type,
-    pixels
+    pixels,
   ) {
     if (arguments.length === 6) {
       // width is now format, height is now type, and border is now pixels
@@ -294,7 +295,7 @@ function wrap(width, height) {
         0,
         format,
         type,
-        pixels
+        pixels,
       );
     }
 
@@ -308,11 +309,11 @@ function wrap(width, height) {
         border,
         format,
         type,
-        pixels
+        pixels,
       );
     }
 
-    throw new TypeError("Function texImage2D() takes 6 or 9 arguments.");
+    throw new TypeError('Function texImage2D() takes 6 or 9 arguments.');
   };
 
   // Uniform
@@ -325,7 +326,7 @@ function wrap(width, height) {
 
   gl.getUniformLocation = (program, name) =>
     new gl.WebGLUniformLocation(
-      origGl.getUniformLocation(enforceId(program), name)
+      origGl.getUniformLocation(enforceId(program), name),
     );
 
   gl.uniform1f = (location, x) => origGl.uniform1f(enforceId(location), x);
@@ -386,7 +387,7 @@ function wrap(width, height) {
     return origGl.uniformMatrix2fv(
       enforceId(location),
       transpose,
-      enforceF32(v)
+      enforceF32(v),
     );
   };
 
@@ -394,7 +395,7 @@ function wrap(width, height) {
     return origGl.uniformMatrix3fv(
       enforceId(location),
       transpose,
-      enforceF32(v)
+      enforceF32(v),
     );
   };
 
@@ -402,7 +403,7 @@ function wrap(width, height) {
     return origGl.uniformMatrix4fv(
       enforceId(location),
       transpose,
-      enforceF32(v)
+      enforceF32(v),
     );
   };
 
@@ -435,25 +436,40 @@ function wrap(width, height) {
 
   gl.getTransformFeedbackVarying = (program, location) =>
     new gl.WebGLActiveInfo(
-      origGl.getTransformFeedbackVarying(enforceId(program), location)
+      origGl.getTransformFeedbackVarying(enforceId(program), location),
     );
 
   // Misc OpenGL Functions
   gl.getParameter = pname => {
+    let ret;
     switch (pname) {
+      case 0x8b4d:
+        ret = 64;
+        break;
+      case 0x8b8c:
+        ret = 'OpenGL ES GLSL ES 3.10';
+        break;
       case 0x1f02:
-        return "OpenGL ES 3.0 Chromium";
+        ret = 'OpenGL ES 3.0 Chromium';
+        break;
       case 0x9245:
-        return origGl.getParameter(0x1f00); // UNMASKED VENDOR
+        ret = origGl.getParameter(0x1f00); // UNMASKED VENDOR
+        break;
       case 0x9246:
-        return origGl.getParameter(0x1f01); // UNMASKED RENDERER
+        ret = origGl.getParameter(0x1f01); // UNMASKED RENDERER
+        break;
       case 0x1f01:
-        return "WebKit"; // VENDOR
+        ret = 'WebKit'; // VENDOR
+        break;
       case 0x1f00:
-        return "WebKit WebGL"; // RENDERER
+        ret = 'WebKit WebGL'; // RENDERER
+        break;
       default:
-        return origGl.getParameter(pname);
+        ret = origGl.getParameter(pname);
     }
+
+    console.log(pname, ret);
+    return ret;
   };
   gl.pixelStorei = (pname, param) => {
     origGl.pixelStorei(pname, enforceBool(param));
@@ -465,11 +481,11 @@ function wrap(width, height) {
 
   gl.viewport = (x, y, width, height) => origGl.viewport(x, y, width, height);
 
-  Object.defineProperty(gl, "drawingBufferWidth", {
-    get: () => gl.getParameter(gl.VIEWPORT)[2]
+  Object.defineProperty(gl, 'drawingBufferWidth', {
+    get: () => gl.getParameter(gl.VIEWPORT)[2],
   });
-  Object.defineProperty(gl, "drawingBufferHeight", {
-    get: () => gl.getParameter(gl.VIEWPORT)[3]
+  Object.defineProperty(gl, 'drawingBufferHeight', {
+    get: () => gl.getParameter(gl.VIEWPORT)[3],
   });
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -482,18 +498,18 @@ function wrap(width, height) {
       drawElementsInstancedANGLE: (mode, count, type, offset, instanceCount) =>
         origGl.drawElementsInstanced(mode, count, type, offset, instanceCount),
       vertexAttribDivisorANGLE: (index, divisor) =>
-        origGl.vertexAttribDivisor(index, divisor)
+        origGl.vertexAttribDivisor(index, divisor),
     },
     EXT_blend_minmax: {
       MIN_EXT: 0x8007,
-      MAX_EXT: 0x8008
+      MAX_EXT: 0x8008,
     },
     EXT_color_buffer_float: {},
     EXT_color_buffer_half_float: {
       RGBA16F_EXT: 0x881a,
       RGB16F_EXT: 0x881b,
       FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE_EXT: 0x8211,
-      UNSIGNED_NORMALIZED_EXT: 0x8c17
+      UNSIGNED_NORMALIZED_EXT: 0x8c17,
     },
     EXT_disjoint_timer_query: {
       QUERY_COUNTER_BITS_EXT: 0x8864,
@@ -510,28 +526,28 @@ function wrap(width, height) {
       endQueryEXT() {},
       queryCounterEXT() {},
       getQueryEXT() {},
-      getQueryObjectEXT() {}
+      getQueryObjectEXT() {},
     },
     EXT_frag_depth: {},
     EXT_sRGB: {
       SRGB_EXT: 0x8c40,
       SRGB_ALPHA_EXT: 0x8c42,
       SRGB8_ALPHA8_EXT: 0x8c43,
-      FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING_EXT: 0x8210
+      FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING_EXT: 0x8210,
     },
     EXT_shader_texture_lod: {},
     EXT_texture_filter_anisotropic: {
       MAX_TEXTURE_MAX_ANISOTROPY_EXT: 0x84ff,
-      TEXTURE_MAX_ANISOTROPY_EXT: 0x84fe
+      TEXTURE_MAX_ANISOTROPY_EXT: 0x84fe,
     },
     OES_element_index_uint: {},
     OES_standard_derivatives: {
-      FRAGMENT_SHADER_DERIVATIVE_HINT_OES: 0x8b8b
+      FRAGMENT_SHADER_DERIVATIVE_HINT_OES: 0x8b8b,
     },
     OES_texture_float: {},
     OES_texture_float_linear: {},
     OES_texture_half_float: {
-      HALF_FLOAT_OES: 0x8d61
+      HALF_FLOAT_OES: 0x8d61,
     },
     OES_texture_half_float_linear: {},
     OES_vertex_array_object: {
@@ -540,13 +556,13 @@ function wrap(width, height) {
         new gl.WebGLVertexArray(origGl.createVertexArray()),
       deleteVertexArrayOES: vao => origGl.deleteVertexArray(enforceId(vao)),
       isVertexArrayOES: vao => origGl.isVertexArray(enforceId(vao)),
-      bindVertexArrayOES: v => origGl.bindVertexArray(enforceId(v))
+      bindVertexArrayOES: v => origGl.bindVertexArray(enforceId(v)),
     },
     WEBGL_color_buffer_float: {
       RGBA32F_EXT: 0x8814,
       RGB32F_EXT: 0x8815,
       FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE_EXT: 0x8211,
-      UNSIGNED_NORMALIZED_EXT: 0x8c17
+      UNSIGNED_NORMALIZED_EXT: 0x8c17,
     },
     WEBGL_compressed_texture_astc: {
       getSupportedProfiles() {},
@@ -577,12 +593,12 @@ function wrap(width, height) {
       COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR: 0x93da,
       COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR: 0x93db,
       COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR: 0x93dc,
-      COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR: 0x93dd
+      COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR: 0x93dd,
     },
     WEBGL_compressed_texture_atc: {
       COMPRESSED_RGB_ATC_WEBGL: 0x8c92,
       COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL: 0x8c92,
-      COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL: 0x87ee
+      COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL: 0x87ee,
     },
     WEBGL_compressed_texture_etc: {
       COMPRESSED_R11_EAC: 0x9270,
@@ -594,38 +610,38 @@ function wrap(width, height) {
       COMPRESSED_SRGB8_ETC2: 0x9276,
       COMPRESSED_SRGB8_ALPHA8_ETC2_EAC: 0x9277,
       COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2: 0x9278,
-      COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2: 0x9279
+      COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2: 0x9279,
     },
     WEBGL_compressed_texture_etc1: {
-      COMPRESSED_RGB_ETC1_WEBGL: 0x8d64
+      COMPRESSED_RGB_ETC1_WEBGL: 0x8d64,
     },
     WEBGL_compressed_texture_pvrtc: {
       COMPRESSED_RGB_PVRTC_4BPPV1_IMG: 0x8c00,
       COMPRESSED_RGBA_PVRTC_4BPPV1_IMG: 0x8c02,
       COMPRESSED_RGB_PVRTC_2BPPV1_IMG: 0x8c01,
-      COMPRESSED_RGBA_PVRTC_2BPPV1_IMG: 0x8c03
+      COMPRESSED_RGBA_PVRTC_2BPPV1_IMG: 0x8c03,
     },
     WEBGL_compressed_texture_s3tc: {
       COMPRESSED_RGB_S3TC_DXT1_EXT: 0x83f0,
       COMPRESSED_RGBA_S3TC_DXT1_EXT: 0x83f1,
       COMPRESSED_RGBA_S3TC_DXT3_EXT: 0x83f2,
-      COMPRESSED_RGBA_S3TC_DXT5_EXT: 0x83f3
+      COMPRESSED_RGBA_S3TC_DXT5_EXT: 0x83f3,
     },
     WEBGL_compressed_texture_s3tc_srgb: {
       COMPRESSED_SRGB_S3TC_DXT1_EXT: 0x8c4c,
       COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT: 0x8c4d,
       COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT: 0x8c4e,
-      COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT: 0x8c4f
+      COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT: 0x8c4f,
     },
     WEBGL_debug_renderer_info: {
       UNMASKED_VENDOR_WEBGL: 0x9245,
-      UNMASKED_RENDERER_WEBGL: 0x9246
+      UNMASKED_RENDERER_WEBGL: 0x9246,
     },
     WEBGL_debug_shaders: {
-      getTranslatedShaderSource() {}
+      getTranslatedShaderSource() {},
     },
     WEBGL_depth_texture: {
-      UNSIGNED_INT_24_8_WEBGL: 0x84fa
+      UNSIGNED_INT_24_8_WEBGL: 0x84fa,
     },
     WEBGL_draw_buffers: {
       COLOR_ATTACHMENT0_WEBGL: 0x8ce0,
@@ -661,16 +677,16 @@ function wrap(width, height) {
       DRAW_BUFFER14_WEBGL: 0x8833,
       DRAW_BUFFER15_WEBGL: 0x8834,
       MAX_COLOR_ATTACHMENTS_WEBGL: 0x8cdf,
-      MAX_DRAW_BUFFERS_WEBGL: 0x8824
+      MAX_DRAW_BUFFERS_WEBGL: 0x8824,
     },
     WEBGL_lose_context: {
       loseContext() {},
-      restoreContext() {}
-    }
+      restoreContext() {},
+    },
   };
 
   gl.getSupportedExtensions = () => {
-    gl._realExtensions = origGl.getSupportedExtensions().split(" ");
+    gl._realExtensions = origGl.getSupportedExtensions().split(' ');
     return Object.keys(extensions);
   };
 

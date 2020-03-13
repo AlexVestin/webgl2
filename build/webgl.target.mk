@@ -45,7 +45,7 @@ INCS_Debug := \
 	-I/home/alex/.cache/node-gyp/12.16.1/deps/uv/include \
 	-I/home/alex/.cache/node-gyp/12.16.1/deps/zlib \
 	-I/home/alex/.cache/node-gyp/12.16.1/deps/v8/include \
-	-I/home/alex/prog/webgl/node_modules/node-addon-api \
+	-I/home/alex/coding-server/webgl2/node_modules/node-addon-api \
 	-I/opt/cuda/targets/x86_64-linux/include \
 	-I/opt/angle \
 	-I/opt/angle/angle/include \
@@ -92,7 +92,7 @@ INCS_Release := \
 	-I/home/alex/.cache/node-gyp/12.16.1/deps/uv/include \
 	-I/home/alex/.cache/node-gyp/12.16.1/deps/zlib \
 	-I/home/alex/.cache/node-gyp/12.16.1/deps/v8/include \
-	-I/home/alex/prog/webgl/node_modules/node-addon-api \
+	-I/home/alex/coding-server/webgl2/node_modules/node-addon-api \
 	-I/opt/cuda/targets/x86_64-linux/include \
 	-I/opt/angle \
 	-I/opt/angle/angle/include \

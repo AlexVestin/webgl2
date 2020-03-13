@@ -618,11 +618,8 @@ void WebGLRenderingContext::setUpFramebuffers() {
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
 
-  #if ANGLE
-    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_NATIVE_ID_ANGLE, &native_texture_id);
-  #else
-    native_texture_id = texture;
-  #endif
+  glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_NATIVE_ID_ANGLE, &native_texture_id);
+  //native_texture_id = texture;
 
   std::cout << "Native texture id: " << native_texture_id << std::endl;
 
@@ -683,7 +680,7 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
     frameCtxPtr = (AVHWFramesContext*)(m_avBufferRefFrame->data);
     frameCtxPtr->width = screenWidth;
     frameCtxPtr->height = screenHeight;
-    frameCtxPtr->sw_format = AV_PIX_FMT_0RGB32;
+    frameCtxPtr->sw_format = AV_PIX_FMT_0BGR32;
     frameCtxPtr->format = AV_PIX_FMT_CUDA;
 
     ret = av_hwframe_ctx_init(m_avBufferRefFrame);
@@ -699,12 +696,14 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
     res = cuCtxPopCurrent_v2(&oldCtx);  // THIS IS ALLOWED TO FAIL
     res = cuCtxPushCurrent_v2(*m_cuContext);
     cuInpTexRes = (CUgraphicsResource*)malloc(sizeof(CUgraphicsResource));
-    res = cuGraphicsGLRegisterImage(cuInpTexRes, native_texture_id, GL_TEXTURE_2D,
-                                    CU_GRAPHICS_REGISTER_FLAGS_READ_ONLY);
+    res = cuGraphicsGLRegisterImage(cuInpTexRes, native_texture_id, GL_TEXTURE_2D, CU_GRAPHICS_REGISTER_FLAGS_READ_ONLY);
     if (res != 0) {
-        std::cout << "failed to initialize image: " << native_texture_id  << std::endl;
-        logError(ret);
-        exit(1);
+        res =  cuGraphicsGLRegisterImage(cuInpTexRes, texture, GL_TEXTURE_2D, CU_GRAPHICS_REGISTER_FLAGS_READ_ONLY);
+        if(res != 0) {
+          std::cout << "failed to initialize image: " << native_texture_id  << std::endl;
+          exit(1);
+        } 
+        std::cout << "not using ANGLE" << std::endl;
     } 
 
     std::cout << "Image initialized" << std::endl;
@@ -718,7 +717,7 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
     // Assign some hardware accel specific data to AvCodecContext
     c->hw_device_ctx = m_avBufferRefDevice;
     c->pix_fmt = AV_PIX_FMT_CUDA;
-    c->sw_pix_fmt = AV_PIX_FMT_0RGB32;
+    c->sw_pix_fmt = AV_PIX_FMT_0BGR32;
     c->hw_frames_ctx = m_avBufferRefFrame;
 
     av_opt_set(c->priv_data, "preset", preset.c_str(), 0);
