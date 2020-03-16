@@ -43,7 +43,8 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 		#endif
 		EGL_NONE
 	};
-		
+
+	std::cout << "Getting platform display" << std::endl; 	
 	display = eglGetPlatformDisplay(EGL_PLATFORM_ANGLE_ANGLE, nullptr, &display_attributes[0]);
 
 	//Get display
@@ -58,6 +59,8 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 
 	EGLint major;
 	EGLint minor;
+
+	std::cout << "eglInitialize" << std::endl; 	
 
 	//Initialize EGL
 	if (!eglInitialize(display, &major, &minor)) {
@@ -79,6 +82,7 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 		, EGL_NONE
 	};
 	EGLint num_config;
+	std::cout << "eglChooseConfig" << std::endl; 	
 	if (!eglChooseConfig(
 		display,
 		attrib_list,
@@ -91,6 +95,8 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 	}
 
 	EGLint config_renderable_type;
+	std::cout << "eglGetConfigAttrib" << std::endl; 	
+	
 	if (!eglGetConfigAttrib(display, config, EGL_RENDERABLE_TYPE, &config_renderable_type)) {
 		// TODO error handling
 		std::cerr << "Unable to get config attrib" << std::endl;
@@ -125,6 +131,8 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 	context_attributes.push_back(EGL_CONTEXT_OPENGL_NO_ERROR_KHR);
 	context_attributes.push_back(EGL_TRUE);
 	context_attributes.push_back(EGL_NONE);
+
+	std::cout << "eglCreateContext" << std::endl; 	
 	context = eglCreateContext(display, config, EGL_NO_CONTEXT, context_attributes.data());
 	if (context == EGL_NO_CONTEXT) {
 		std::cerr << "Unable to initialize context" <<std::endl;
@@ -136,6 +144,8 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 		, EGL_HEIGHT, (EGLint)height
 		, EGL_NONE
 	};
+
+	std::cout << "eglCreatePbufferSurface" << std::endl; 	
 	surface = eglCreatePbufferSurface(display, config, surfaceAttribs);
 	if (surface == EGL_NO_SURFACE) {
 		std::cerr << "Unable to initialize pbuffersurface" <<std::endl;
@@ -143,6 +153,8 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 	}
 
 	//Set active
+	std::cout << "eglMakeCurrent" << std::endl; 	
+
 	if (!eglMakeCurrent(display, surface, surface, context)) {
 		std::cerr << "Unable to make context current" <<std::endl;
 		exit(1);
