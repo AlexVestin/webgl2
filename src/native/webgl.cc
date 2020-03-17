@@ -12,20 +12,20 @@ void checkEGLError() {
 	int err = eglGetError();
 	const char* errorString;
 	switch(err) {
-		case EGL_NOT_INITIALIZED: errorString = "EGL_NOT_INITIALIZED";
-		case EGL_BAD_ACCESS: errorString = "EGL_BAD_ACCESS";
-		case EGL_BAD_ALLOC: errorString = "EGL_BAD_ALLOC";
-		case EGL_BAD_ATTRIBUTE: errorString = "EGL_BAD_ATTRIBUTE";
-		case EGL_BAD_CONTEXT: errorString = "EGL_BAD_CONTEXT";
-		case EGL_BAD_CONFIG: errorString = "EGL_BAD_CONFIG";
-		case EGL_BAD_CURRENT_SURFACE: errorString = "EGL_BAD_CURRENT_SURFACE";
-		case EGL_BAD_DISPLAY: errorString = "EGL_BAD_DISPLAY";
-		case EGL_BAD_SURFACE: errorString = "EGL_BAD_SURFACE";
-		case EGL_BAD_MATCH: errorString = "EGL_BAD_MATCH";
-		case EGL_BAD_PARAMETER: errorString = "EGL_BAD_PARAMETER";
-		case EGL_BAD_NATIVE_PIXMAP: errorString = "EGL_BAD_NATIVE_PIXMAP";
-		case EGL_BAD_NATIVE_WINDOW: errorString = "EGL_BAD_NATIVE_WINDOW";
-		case EGL_CONTEXT_LOST: errorString = "EGL_CONTEXT_LOST";
+		case EGL_NOT_INITIALIZED: errorString = "EGL_NOT_INITIALIZED"; break;
+		case EGL_BAD_ACCESS: errorString = "EGL_BAD_ACCESS";break;
+		case EGL_BAD_ALLOC: errorString = "EGL_BAD_ALLOC";break;
+		case EGL_BAD_ATTRIBUTE: errorString = "EGL_BAD_ATTRIBUTE"; break;
+		case EGL_BAD_CONTEXT: errorString = "EGL_BAD_CONTEXT"; break;
+		case EGL_BAD_CONFIG: errorString = "EGL_BAD_CONFIG"; break;
+		case EGL_BAD_CURRENT_SURFACE: errorString = "EGL_BAD_CURRENT_SURFACE"; break;
+		case EGL_BAD_DISPLAY: errorString = "EGL_BAD_DISPLAY"; break;
+		case EGL_BAD_SURFACE: errorString = "EGL_BAD_SURFACE"; break;
+		case EGL_BAD_MATCH: errorString = "EGL_BAD_MATCH"; break;
+		case EGL_BAD_PARAMETER: errorString = "EGL_BAD_PARAMETER"; break;
+		case EGL_BAD_NATIVE_PIXMAP: errorString = "EGL_BAD_NATIVE_PIXMAP"; break;
+		case EGL_BAD_NATIVE_WINDOW: errorString = "EGL_BAD_NATIVE_WINDOW"; break;
+		case EGL_CONTEXT_LOST: errorString = "EGL_CONTEXT_LOST"; break;
 	}
 
 	std::cout << "EGL error: " << errorString << std::endl;
