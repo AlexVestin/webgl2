@@ -21,7 +21,6 @@ const getProps = obj => {
 var logFunction = function(obj, fn) {
   return function() {
     const ret = obj[fn].apply(obj, [...arguments]);
-    console.log(fn, [...arguments], ret);
     return ret;
   };
 };
@@ -186,8 +185,10 @@ function wrap(width, height) {
   gl.deleteProgram = program => origGl.deleteProgram(enforceId(program));
   gl.isProgram = program => origGl.isProgram(enforceId(program));
 
-  gl.getProgramInfoLog = program =>
+  gl.getProgramInfoLog = program => {
     origGl.getProgramInfoLog(enforceId(program));
+    return '\n';
+  };
 
   gl.getProgramParameter = (program, pname) =>
     origGl.getProgramParameter(enforceId(program), pname);
@@ -443,15 +444,6 @@ function wrap(width, height) {
   gl.getParameter = pname => {
     let ret;
     switch (pname) {
-      case 0x8b4d:
-        ret = 64;
-        break;
-      case 0x8b8c:
-        ret = 'OpenGL ES GLSL ES 3.10';
-        break;
-      case 0x1f02:
-        ret = 'OpenGL ES 3.0 Chromium';
-        break;
       case 0x9245:
         ret = origGl.getParameter(0x1f00); // UNMASKED VENDOR
         break;
@@ -468,7 +460,6 @@ function wrap(width, height) {
         ret = origGl.getParameter(pname);
     }
 
-    console.log(pname, ret);
     return ret;
   };
   gl.pixelStorei = (pname, param) => {
@@ -687,7 +678,8 @@ function wrap(width, height) {
 
   gl.getSupportedExtensions = () => {
     gl._realExtensions = origGl.getSupportedExtensions().split(' ');
-    return Object.keys(extensions);
+    console.log(gl._realExtensions);
+    return ['']; //Object.keys(extensions);
   };
 
   gl.getExtension = name => {
