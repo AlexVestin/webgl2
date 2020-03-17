@@ -38,13 +38,13 @@ CFLAGS_CC_Debug := \
 	-std=gnu++1y
 
 INCS_Debug := \
-	-I/home/alex/.cache/node-gyp/12.16.1/include/node \
-	-I/home/alex/.cache/node-gyp/12.16.1/src \
-	-I/home/alex/.cache/node-gyp/12.16.1/deps/openssl/config \
-	-I/home/alex/.cache/node-gyp/12.16.1/deps/openssl/openssl/include \
-	-I/home/alex/.cache/node-gyp/12.16.1/deps/uv/include \
-	-I/home/alex/.cache/node-gyp/12.16.1/deps/zlib \
-	-I/home/alex/.cache/node-gyp/12.16.1/deps/v8/include \
+	-I/home/alex/.cache/node-gyp/13.7.0/include/node \
+	-I/home/alex/.cache/node-gyp/13.7.0/src \
+	-I/home/alex/.cache/node-gyp/13.7.0/deps/openssl/config \
+	-I/home/alex/.cache/node-gyp/13.7.0/deps/openssl/openssl/include \
+	-I/home/alex/.cache/node-gyp/13.7.0/deps/uv/include \
+	-I/home/alex/.cache/node-gyp/13.7.0/deps/zlib \
+	-I/home/alex/.cache/node-gyp/13.7.0/deps/v8/include \
 	-I/home/alex/coding-server/webgl2/node_modules/node-addon-api \
 	-I/opt/cuda/targets/x86_64-linux/include \
 	-I/opt/angle \
@@ -85,13 +85,13 @@ CFLAGS_CC_Release := \
 	-std=gnu++1y
 
 INCS_Release := \
-	-I/home/alex/.cache/node-gyp/12.16.1/include/node \
-	-I/home/alex/.cache/node-gyp/12.16.1/src \
-	-I/home/alex/.cache/node-gyp/12.16.1/deps/openssl/config \
-	-I/home/alex/.cache/node-gyp/12.16.1/deps/openssl/openssl/include \
-	-I/home/alex/.cache/node-gyp/12.16.1/deps/uv/include \
-	-I/home/alex/.cache/node-gyp/12.16.1/deps/zlib \
-	-I/home/alex/.cache/node-gyp/12.16.1/deps/v8/include \
+	-I/home/alex/.cache/node-gyp/13.7.0/include/node \
+	-I/home/alex/.cache/node-gyp/13.7.0/src \
+	-I/home/alex/.cache/node-gyp/13.7.0/deps/openssl/config \
+	-I/home/alex/.cache/node-gyp/13.7.0/deps/openssl/openssl/include \
+	-I/home/alex/.cache/node-gyp/13.7.0/deps/uv/include \
+	-I/home/alex/.cache/node-gyp/13.7.0/deps/zlib \
+	-I/home/alex/.cache/node-gyp/13.7.0/deps/v8/include \
 	-I/home/alex/coding-server/webgl2/node_modules/node-addon-api \
 	-I/opt/cuda/targets/x86_64-linux/include \
 	-I/opt/angle \

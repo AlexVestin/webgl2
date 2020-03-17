@@ -21,7 +21,7 @@ const getProps = obj => {
 var logFunction = function(obj, fn) {
   return function() {
     const ret = obj[fn].apply(obj, [...arguments]);
-    console.log(fn, [...arguments], ret);
+    //console.log(fn, [...arguments], ret);
     return ret;
   };
 };
@@ -468,7 +468,6 @@ function wrap(width, height) {
         ret = origGl.getParameter(pname);
     }
 
-    console.log(pname, ret);
     return ret;
   };
   gl.pixelStorei = (pname, param) => {
