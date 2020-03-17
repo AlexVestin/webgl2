@@ -7,6 +7,31 @@
 
 Napi::FunctionReference WebGLRenderingContext::constructor;
 
+
+void checkEGLError() {
+	int err = eglGetError();
+	const char* errorString;
+	switch(err) {
+		case EGL_NOT_INITIALIZED: errorString = "EGL_NOT_INITIALIZED";
+		case EGL_BAD_ACCESS: errorString = "EGL_BAD_ACCESS";
+		case EGL_BAD_ALLOC: errorString = "EGL_BAD_ALLOC";
+		case EGL_BAD_ATTRIBUTE: errorString = "EGL_BAD_ATTRIBUTE";
+		case EGL_BAD_CONTEXT: errorString = "EGL_BAD_CONTEXT";
+		case EGL_BAD_CONFIG: errorString = "EGL_BAD_CONFIG";
+		case EGL_BAD_CURRENT_SURFACE: errorString = "EGL_BAD_CURRENT_SURFACE";
+		case EGL_BAD_DISPLAY: errorString = "EGL_BAD_DISPLAY";
+		case EGL_BAD_SURFACE: errorString = "EGL_BAD_SURFACE";
+		case EGL_BAD_MATCH: errorString = "EGL_BAD_MATCH";
+		case EGL_BAD_PARAMETER: errorString = "EGL_BAD_PARAMETER";
+		case EGL_BAD_NATIVE_PIXMAP: errorString = "EGL_BAD_NATIVE_PIXMAP";
+		case EGL_BAD_NATIVE_WINDOW: errorString = "EGL_BAD_NATIVE_WINDOW";
+		case EGL_CONTEXT_LOST: errorString = "EGL_CONTEXT_LOST";
+	}
+
+	std::cout << "EGL error: " << errorString << std::endl;
+}
+
+
 WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Napi::ObjectWrap<WebGLRenderingContext>(info) {
     int32_t width = 1280;
 	int32_t height = 720;
@@ -53,6 +78,7 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 		display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 		if (display == EGL_NO_DISPLAY) {
 			std::cerr << "Unable to initialize display" <<std::endl;
+			checkEGLError();
 			exit(1);
 		}
 	}
@@ -65,6 +91,7 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 	//Initialize EGL
 	if (!eglInitialize(display, &major, &minor)) {
 		std::cerr << "Unable to initialize egl versions" <<std::endl;
+		checkEGLError();
 		exit(1);
 	}
 	//Save display
@@ -91,6 +118,7 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 		&num_config) ||
 		num_config != 1) {
 		std::cerr << "Unable to initialize with config" <<std::endl;
+		checkEGLError();
 		exit(1);
 	}
 
@@ -100,6 +128,7 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 	if (!eglGetConfigAttrib(display, config, EGL_RENDERABLE_TYPE, &config_renderable_type)) {
 		// TODO error handling
 		std::cerr << "Unable to get config attrib" << std::endl;
+		checkEGLError();
 		exit(1);
 	}
 
@@ -120,22 +149,17 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 	context_attributes.push_back(EGL_CONTEXT_MINOR_VERSION);
 	context_attributes.push_back(minor_version);
 
-	// If webgl compability
-	if (false) {
-		context_attributes.push_back(EGL_CONTEXT_WEBGL_COMPATIBILITY_ANGLE);
-		context_attributes.push_back(EGL_TRUE);
-	}
-
 	// TODO(kreeger): This is only needed to avoid validation.
 	// This is needed for OES_TEXTURE_HALF_FLOAT textures uploading as FLOAT
-	//context_attributes.push_back(EGL_CONTEXT_OPENGL_NO_ERROR_KHR);
-	//context_attributes.push_back(EGL_TRUE);
+	context_attributes.push_back(EGL_CONTEXT_OPENGL_NO_ERROR_KHR);
+	context_attributes.push_back(EGL_TRUE);
 	context_attributes.push_back(EGL_NONE);
 
 	std::cout << "eglCreateContext" << std::endl; 	
 	context = eglCreateContext(display, config, EGL_NO_CONTEXT, context_attributes.data());
 	if (context == EGL_NO_CONTEXT) {
 		std::cerr << "Unable to initialize context" <<std::endl;
+		checkEGLError();
 		exit(1);
 	}
 
@@ -149,6 +173,7 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 	surface = eglCreatePbufferSurface(display, config, surfaceAttribs);
 	if (surface == EGL_NO_SURFACE) {
 		std::cerr << "Unable to initialize pbuffersurface" <<std::endl;
+		checkEGLError();
 		exit(1);
 	}
 
@@ -157,6 +182,7 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 
 	if (!eglMakeCurrent(display, surface, surface, context)) {
 		std::cerr << "Unable to make context current" <<std::endl;
+		checkEGLError();
 		exit(1);
 	}
 

@@ -678,8 +678,7 @@ function wrap(width, height) {
 
   gl.getSupportedExtensions = () => {
     gl._realExtensions = origGl.getSupportedExtensions().split(' ');
-    console.log(gl._realExtensions);
-    return ['']; //Object.keys(extensions);
+    return Object.keys(extensions);
   };
 
   gl.getExtension = name => {
