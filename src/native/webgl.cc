@@ -52,8 +52,8 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 		std::cout << "Using default display" << std::endl;
 		display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 		if (display == EGL_NO_DISPLAY) {
-		std::cerr << "Unable to initialize display" <<std::endl;
-		exit(1);
+			std::cerr << "Unable to initialize display" <<std::endl;
+			exit(1);
 		}
 	}
 
@@ -114,10 +114,10 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 
 	// Append attributes based on available features
 	std::vector<EGLint> context_attributes;
-	context_attributes.push_back(EGL_CONTEXT_MAJOR_VERSION_KHR);
+	context_attributes.push_back(EGL_CONTEXT_MAJOR_VERSION);
 	context_attributes.push_back(major_version);
 
-	context_attributes.push_back(EGL_CONTEXT_MINOR_VERSION_KHR);
+	context_attributes.push_back(EGL_CONTEXT_MINOR_VERSION);
 	context_attributes.push_back(minor_version);
 
 	// If webgl compability
@@ -128,8 +128,8 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 
 	// TODO(kreeger): This is only needed to avoid validation.
 	// This is needed for OES_TEXTURE_HALF_FLOAT textures uploading as FLOAT
-	context_attributes.push_back(EGL_CONTEXT_OPENGL_NO_ERROR_KHR);
-	context_attributes.push_back(EGL_TRUE);
+	//context_attributes.push_back(EGL_CONTEXT_OPENGL_NO_ERROR_KHR);
+	//context_attributes.push_back(EGL_TRUE);
 	context_attributes.push_back(EGL_NONE);
 
 	std::cout << "eglCreateContext" << std::endl; 	
