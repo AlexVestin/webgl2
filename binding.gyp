@@ -18,7 +18,9 @@
         "/opt/angle",
         "/opt/angle/angle/include",
         "/usr/local/cuda-10.2/targets/x86_64-linux/include",
-        "/home/alex_vestin/ffmpeg_build/include/"
+        "/home/alex_vestin/ffmpeg_build/include/",
+        "/usr/local/cuda-10.1/include",
+        "/ffmpeg-build-static-binaries/include/",
       ],
       'libraries': [
         '-lEGL',
@@ -32,7 +34,8 @@
       ],
       'library_dirs': [
         "/opt/angle/angle/out/Release",
-	"/home/alex_vestin/ffmpeg_build/lib/"
+	"/home/alex_vestin/ffmpeg_build/lib/",
+  "/ffmpeg-build-static-binaries/lib"
       ],
       'defines': [ 'NAPI_DISABLE_CPP_EXCEPTIONS' ],
     }

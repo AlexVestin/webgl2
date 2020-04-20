@@ -11,11 +11,11 @@
 #else 
 	#define EGL_EGL_PROTOTYPES 1
 	#define EGL_EGLEXT_PROTOTYPES 1
-	#include <angle/include/EGL/egl.h>
-	#include <angle/include/EGL/eglext.h>
-	#include <angle/include/GLES2/gl2.h>
-	#include <angle/include/GLES2/gl2ext.h>
-	#include <angle/include/GLES3/gl32.h>
+	#include <EGL/egl.h>
+	#include <EGL/eglext.h>
+	#include <GLES2/gl2.h>
+	#include <GLES2/gl2ext.h>
+	#include <GLES3/gl32.h>
 
     #include <cuda.h>
     #include <cudaGL.h>
@@ -31,7 +31,6 @@
         #include <libavutil/hwcontext_cuda.h>
         #include <libswresample/swresample.h>
         #include <libswscale/swscale.h>
-
     }
 #endif
 

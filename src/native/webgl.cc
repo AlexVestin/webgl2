@@ -59,6 +59,7 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
     screenHeight = height;
 
 
+	/*
 	std::vector<EGLAttrib> display_attributes = {
 		EGL_PLATFORM_ANGLE_TYPE_ANGLE,
 		#if defined(__arm__)
@@ -75,12 +76,14 @@ WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo& info): Na
 	//Get display
 	if (display == EGL_NO_DISPLAY) {
 		std::cout << "Using default display" << std::endl;
-		display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-		if (display == EGL_NO_DISPLAY) {
-			std::cerr << "Unable to initialize display" <<std::endl;
-			checkEGLError();
-			exit(1);
-		}
+		
+	}*/
+
+	display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	if (display == EGL_NO_DISPLAY) {
+		std::cerr << "Unable to initialize display" <<std::endl;
+		checkEGLError();
+		exit(1);
 	}
 
 	EGLint major;

@@ -618,8 +618,8 @@ void WebGLRenderingContext::setUpFramebuffers() {
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
 
-  glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_NATIVE_ID_ANGLE, &native_texture_id);
-  //native_texture_id = texture;
+  //glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_NATIVE_ID_ANGLE, &native_texture_id);
+  native_texture_id = texture;
 
   std::cout << "Native texture id: " << native_texture_id << std::endl;
 
