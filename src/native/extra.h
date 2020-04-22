@@ -289,7 +289,8 @@ template<typename Type = uint8_t>
 inline Type* getArrayData(
 	Napi::Env env,
 	Napi::Object obj,
-	int *num = nullptr
+	int *num = nullptr,
+	int srcOffset = 0
 ) {
 	
 	Type *data = nullptr;
@@ -299,17 +300,18 @@ inline Type* getArrayData(
 		size_t offset = ta.ByteOffset();
 		Napi::ArrayBuffer arr = ta.ArrayBuffer();
 		if (num) {
-			*num = arr.ByteLength() / sizeof(Type);
+			*num = ta.ByteLength() / sizeof(Type);
 		}
+
 		uint8_t *base = reinterpret_cast<uint8_t *>(arr.Data());
-		data = reinterpret_cast<Type *>(base + offset);
+		data = reinterpret_cast<Type *>(base  + offset + ( sizeof(Type) * srcOffset ));
 
 	} else if (obj.IsArrayBuffer()) {
 		Napi::ArrayBuffer arr = obj.As<Napi::ArrayBuffer>();
 		if (num) {
 			*num = arr.ByteLength() / sizeof(Type);
 		}
-		data = reinterpret_cast<Type *>(arr.Data());
+		data = reinterpret_cast<Type *>(arr.Data() + ( sizeof(Type) * srcOffset ));
 	} else {
 		if (num) {
 			*num = 0;
@@ -325,7 +327,8 @@ template<typename Type = uint8_t>
 inline Type* getBufferData(
 	Napi::Env env,
 	Napi::Object obj,
-	int *num = nullptr
+	int *num = nullptr,
+	int offset = 0
 ) {
 	
 	Type *data = nullptr;
@@ -343,27 +346,27 @@ inline Type* getBufferData(
 	if (num) {
 		*num = arr.Length() / sizeof(Type);
 	}
-	data = arr.Data();
+	data = arr.Data() + sizeof(Type) * offset;
 	
 	return data;
 	
 }
 
 
-inline void *getData(Napi::Env env, Napi::Object obj) {
+inline void *getData(Napi::Env env, Napi::Object obj, int offset = 0) {
 	
 	void *pixels = nullptr;
 	
 	if (obj.IsTypedArray() || obj.IsArrayBuffer()) {
-		pixels = getArrayData<uint8_t>(env, obj);
+		pixels = getArrayData<uint8_t>(env, obj, nullptr, offset);
 	} else if (obj.IsBuffer()) {
-		pixels = getBufferData<uint8_t>(env, obj);
+		pixels = getBufferData<uint8_t>(env, obj, nullptr, offset);
 	} else if (obj.Has("data")) {
 		Napi::Object data = obj.Get("data").As<Napi::Object>();
 		if (data.IsTypedArray() || data.IsArrayBuffer()) {
-			pixels = getArrayData<uint8_t>(env, data);
+			pixels = getArrayData<uint8_t>(env, data, nullptr, offset);
 		} else if (data.IsBuffer()) {
-			pixels = getBufferData<uint8_t>(env, data);
+			pixels = getBufferData<uint8_t>(env, data, nullptr, offset);
 		}
 	}
 	

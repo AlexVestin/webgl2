@@ -114,20 +114,36 @@ function wrap(width, height) {
   gl.getAttribLocation = (program, name) =>
     origGl.getAttribLocation(enforceId(program), name);
 
-  gl.vertexAttrib1fv = (indx, v) => {
-    return origGl.vertexAttrib1fv(indx, enforceF32(v));
+  gl.vertexAttrib1fv = (indx, v, offset, length) => {
+    if (offset !== undefined) {
+      return origGl.vertexAttrib1fv(indx, enforceF32(v), offset, length);
+    } else {
+      return origGl.vertexAttrib1fv(indx, enforceF32(v));
+    }
   };
 
-  gl.vertexAttrib2fv = (indx, v) => {
-    return origGl.vertexAttrib2fv(indx, enforceF32(v));
+  gl.vertexAttrib2fv = (indx, v, offset, length) => {
+    if (offset !== undefined) {
+      return origGl.vertexAttrib2fv(indx, enforceF32(v), offset, length);
+    } else {
+      return origGl.vertexAttrib2fv(indx, enforceF32(v));
+    }
   };
 
-  gl.vertexAttrib3fv = (indx, v) => {
-    return origGl.vertexAttrib3fv(indx, enforceF32(v));
+  gl.vertexAttrib3fv = (indx, v, offset, length) => {
+    if (offset !== undefined) {
+      return origGl.vertexAttrib3fv(indx, enforceF32(v), offset, length);
+    } else {
+      return origGl.vertexAttrib3fv(indx, enforceF32(v));
+    }
   };
 
-  gl.vertexAttrib4fv = (indx, v) => {
-    return origGl.vertexAttrib4fv(indx, enforceF32(v));
+  gl.vertexAttrib4fv = (indx, v, offset, length) => {
+    if (offset !== undefined) {
+      return origGl.vertexAttrib4fv(indx, enforceF32(v), offset, length);
+    } else {
+      return origGl.vertexAttrib4fv(indx, enforceF32(v));
+    }
   };
 
   // VBO
@@ -331,81 +347,184 @@ function wrap(width, height) {
     );
 
   gl.uniform1f = (location, x) => origGl.uniform1f(enforceId(location), x);
-  gl.uniform1fv = (location, v) => {
-    return origGl.uniform1fv(enforceId(location), enforceF32(v));
-  };
 
   gl.uniform1i = (location, x) =>
     origGl.uniform1i(enforceId(location), enforceBool(x));
 
-  gl.uniform1iv = (location, v) => {
-    return origGl.uniform1iv(enforceId(location), enforceF32(v));
+  gl.uniform1iv = (location, v, offset, length) => {
+    if (offset === undefined) {
+      return origGl.uniform1iv(enforceId(location), enforceF32(v));
+    } else {
+      return origGl.uniform1iv(
+        enforceId(location),
+        enforceF32(v),
+        offset,
+        length,
+      );
+    }
   };
 
   gl.uniform2f = (location, x, y) =>
     origGl.uniform2f(enforceId(location), x, y);
 
-  gl.uniform2fv = (location, v) => {
-    return origGl.uniform2fv(enforceId(location), enforceF32(v));
-  };
-
   gl.uniform2i = (location, x, y) =>
     origGl.uniform2i(enforceId(location), x, y);
 
-  gl.uniform2iv = (location, v) => {
-    return origGl.uniform2iv(enforceId(location), enforceF32(v));
+  gl.uniform2iv = (location, v, offset, length) => {
+    if (offset === undefined) {
+      return origGl.uniform2iv(enforceId(location), enforceF32(v));
+    } else {
+      return origGl.uniform2iv(
+        enforceId(location),
+        enforceF32(v),
+        offset,
+        length,
+      );
+    }
   };
 
   gl.uniform3f = (location, x, y, z) =>
     origGl.uniform3f(enforceId(location), x, y, z);
 
-  gl.uniform3fv = (location, v) => {
-    return origGl.uniform3fv(enforceId(location), enforceF32(v));
+  gl.uniform1fv = (location, v, offset, length) => {
+    if (offset === undefined) {
+      return origGl.uniform1fv(enforceId(location), enforceF32(v));
+    } else {
+      return origGl.uniform1fv(
+        enforceId(location),
+        enforceF32(v),
+        offset,
+        length,
+      );
+    }
+  };
+
+  gl.uniform2fv = (location, v, offset, length) => {
+    if (offset === undefined) {
+      return origGl.uniform2fv(enforceId(location), enforceF32(v));
+    } else {
+      return origGl.uniform2fv(
+        enforceId(location),
+        enforceF32(v),
+        offset,
+        length,
+      );
+    }
+  };
+
+  gl.uniform3fv = (location, v, offset, length) => {
+    if (offset === undefined) {
+      return origGl.uniform3fv(enforceId(location), enforceF32(v));
+    } else {
+      return origGl.uniform3fv(
+        enforceId(location),
+        enforceF32(v),
+        offset,
+        length,
+      );
+    }
+  };
+
+  gl.uniform4fv = (location, v, offset, length) => {
+    if (offset === undefined) {
+      return origGl.uniform4fv(enforceId(location), enforceF32(v));
+    } else {
+      return origGl.uniform4fv(
+        enforceId(location),
+        enforceF32(v),
+        offset,
+        length,
+      );
+    }
   };
 
   gl.uniform3i = (location, x, y, z) =>
     origGl.uniform3i(enforceId(location), x, y, z);
 
-  gl.uniform3iv = (location, v) => {
-    return origGl.uniform3iv(enforceId(location), enforceF32(v));
+  gl.uniform3iv = (location, v, offset, length) => {
+    if (offset === undefined) {
+      return origGl.uniform3iv(enforceId(location), enforceF32(v));
+    } else {
+      return origGl.uniform3iv(
+        enforceId(location),
+        enforceF32(v),
+        offset,
+        length,
+      );
+    }
   };
 
   gl.uniform4f = (location, x, y, z, w) =>
     origGl.uniform4f(enforceId(location), x, y, z, w);
 
-  gl.uniform4fv = (location, v) => {
-    return origGl.uniform4fv(enforceId(location), enforceF32(v));
-  };
-
   gl.uniform4i = (location, x, y, z, w) =>
     origGl.uniform4i(enforceId(location), x, y, z, w);
 
-  gl.uniform4iv = (location, v) => {
-    return origGl.uniform4iv(enforceId(location), enforceF32(v));
+  gl.uniform4iv = (location, v, offset, length) => {
+    if (offset === undefined) {
+      return origGl.uniform4iv(enforceId(location), enforceF32(v));
+    } else {
+      return origGl.uniform4iv(
+        enforceId(location),
+        enforceF32(v),
+        offset,
+        length,
+      );
+    }
   };
 
-  gl.uniformMatrix2fv = (location, transpose, v) => {
-    return origGl.uniformMatrix2fv(
-      enforceId(location),
-      transpose,
-      enforceF32(v),
-    );
+  gl.uniformMatrix2fv = (location, transpose, v, offset, length) => {
+    if (offset === undefined) {
+      return origGl.uniformMatrix2fv(
+        enforceId(location),
+        transpose,
+        enforceF32(v),
+      );
+    } else {
+      return origGl.uniformMatrix2fv(
+        enforceId(location),
+        transpose,
+        enforceF32(v),
+        offset,
+        length,
+      );
+    }
   };
 
-  gl.uniformMatrix3fv = (location, transpose, v) => {
-    return origGl.uniformMatrix3fv(
-      enforceId(location),
-      transpose,
-      enforceF32(v),
-    );
+  gl.uniformMatrix3fv = (location, transpose, v, offset, length) => {
+    if (offset === undefined) {
+      return origGl.uniformMatrix3fv(
+        enforceId(location),
+        transpose,
+        enforceF32(v),
+      );
+    } else {
+      return origGl.uniformMatrix3fv(
+        enforceId(location),
+        transpose,
+        enforceF32(v),
+        offset,
+        length,
+      );
+    }
   };
 
-  gl.uniformMatrix4fv = (location, transpose, v) => {
-    return origGl.uniformMatrix4fv(
-      enforceId(location),
-      transpose,
-      enforceF32(v),
-    );
+  gl.uniformMatrix4fv = (location, transpose, v, offset, length) => {
+    if (offset === undefined) {
+      return origGl.uniformMatrix4fv(
+        enforceId(location),
+        transpose,
+        enforceF32(v),
+      );
+    } else {
+      return origGl.uniformMatrix4fv(
+        enforceId(location),
+        transpose,
+        enforceF32(v),
+        offset,
+        length,
+      );
+    }
   };
 
   // VAO
