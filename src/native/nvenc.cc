@@ -712,7 +712,16 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
     std::cout << "Setting up codec..." << std::endl;
       
     codec = avcodec_find_encoder_by_name("h264_nvenc");
+    if(!codec) {
+      std::cout << "Faile to find encoder by name h264_nvenc" << std::endl;
+      exit(1);
+    }
+
     c = avcodec_alloc_context3(codec);
+    if(!c) {
+        std::cout << "Failed to allocate encoder cintextr" << std::endl;
+        exit(1);
+    }
 
     // Assign some hardware accel specific data to AvCodecContext
     c->hw_device_ctx = m_avBufferRefDevice;

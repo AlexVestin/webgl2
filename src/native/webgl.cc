@@ -667,6 +667,7 @@ GL_METHOD(ReadPixels) { NAPI_ENV;
 	REQ_INT32_ARG(3, height);
 	REQ_INT32_ARG(4, format);
 	REQ_INT32_ARG(5, type);
+	
 	REQ_OBJ_ARG(6, image);
 	
 	void *pixels = getData(env, image);
@@ -1104,14 +1105,16 @@ GL_METHOD(BindBufferRange) { NAPI_ENV;
 GL_METHOD(BufferData) { NAPI_ENV;
 	
 	REQ_INT32_ARG(0, target);
-	
-	if (info[1].IsObject()) {
+
+	// WebGL 1
+	if(info.Length() == 3) {
+		if (info[1].IsObject()) {
 		
 		REQ_OBJ_ARG(1, arr);
 		REQ_INT32_ARG(2, usage);
 		
 		int size;
-		void* data = getArrayData<uint8_t>(env, info[1].As<Napi::ArrayBuffer>(), &size);
+		void* data = getArrayData<uint8_t>(env, info[1].As<Napi::TypedArray>(), &size);
 		glBufferData(target, size, data, usage);
 
 	} else if (info[1].IsNumber()) {
@@ -1122,9 +1125,20 @@ GL_METHOD(BufferData) { NAPI_ENV;
 		glBufferData(target, size, NULL, usage);
 		
 	}
+	} else {
+		// WebGL 2		
+
+		REQ_OBJ_ARG(1, arr);
+		REQ_INT32_ARG(2, usage);
+		REQ_INT32_ARG(3, srcOffset);
+		REQ_INT32_ARG(4, length);
+
+		int size;
+		void* data = getArrayData<uint8_t>(env, info[1].As<Napi::TypedArray>(), &size, srcOffset);
+		glBufferData(target, length, data, usage);
+	}
 	
-	RET_UNDEFINED;
-	
+	RET_UNDEFINED;	
 }
 
 
@@ -1135,9 +1149,18 @@ GL_METHOD(BufferSubData) { NAPI_ENV;
 	REQ_TYPED_ARRAY_ARG(2, arr);
 	
 	int size = arr.ByteLength();
-	void* data = getArrayData<uint8_t>(env, arr);
 	
-	glBufferSubData(target, offset, size, data);
+	if (info.Length() == 3)  {
+		void* data = getArrayData<uint8_t>(env, arr);
+		glBufferSubData(target, offset, size, data);
+	} else {
+		REQ_UINT32_ARG(3, srcOffset);
+		REQ_UINT32_ARG(4, length);
+		
+		void* data = getArrayData<uint8_t>(env, arr, nullptr, srcOffset);
+		glBufferSubData(target, offset, length, data);
+	}
+
 	RET_UNDEFINED;
 	
 }
@@ -2053,12 +2076,18 @@ GL_METHOD(TexImage2D) { NAPI_ENV;
 	} else {
 		
 		REQ_OBJ_ARG(8, image);
+		int offset = 0;
+		if (info.Length() == 10) {
+			REQ_INT32_ARG(9, srcOffset);
+			offset = srcOffset;
+		}
+		
 		void *ptr;
         
 		if(unpack_flip_y || unpack_premultiply_alpha) {
-			ptr = (void*)unpackPixels(type, format, width, height, reinterpret_cast<uint8_t*>(getData(env, image)));
+			ptr = (void*)unpackPixels(type, format, width, height, reinterpret_cast<uint8_t*>(getData(env, image, offset)));
 		} else {
-			ptr = getData(env, image);
+			ptr = getData(env, image, offset);
 		}
 		
 		glTexImage2D(
@@ -2169,8 +2198,15 @@ GL_METHOD(TexSubImage2D) { NAPI_ENV;
 	} else {
 		
 		REQ_OBJ_ARG(8, image);
+
+		int offset = 0;
+		if (info.Length() == 10) {
+			REQ_INT32_ARG(9, srcOffset);
+			offset = srcOffset;
+		}
+
 		
-		void *pixels = getData(env, image);
+		void *pixels = getData(env, image, offset);
 		glTexSubImage2D(
 			target,
 			level,
@@ -2467,9 +2503,16 @@ GL_METHOD(Uniform1fv) { NAPI_ENV;
 	
 	REQ_INT32_ARG(0, location);
 	REQ_OBJ_ARG(1, abv);
+
+	int offset = 0;
+	int length = 0;
+	if (info.Length() > 3) {
+		offset = info[2].As<Napi::Number>();
+		length = info[3].As<Napi::Number>();
+	}
 	
-	int num;
-	GLfloat *ptr = getArrayData<GLfloat>(env, abv, &num);
+	int num  = length;
+	GLfloat *ptr = getArrayData<GLfloat>(env, abv, length > 0 ? &num : nullptr, offset);
 	
 	glUniform1fv(location, num, ptr);
 	RET_UNDEFINED;
@@ -2497,8 +2540,16 @@ GL_METHOD(Uniform3fv) { NAPI_ENV;
 	REQ_INT32_ARG(0, location);
 	REQ_OBJ_ARG(1, abv);
 	
-	int num;
-	GLfloat *ptr = getArrayData<GLfloat>(env, abv, &num);
+	
+	int offset = 0;
+	int length = 0;
+	if (info.Length() > 3) {
+		offset = info[2].As<Napi::Number>();
+		length = info[3].As<Napi::Number>();
+	}
+	
+	int num  = length;
+	GLfloat *ptr = getArrayData<GLfloat>(env, abv, length > 0 ? &num : nullptr, offset);
 	num /= 3;
 	
 	glUniform3fv(location, num, ptr);
@@ -2512,8 +2563,15 @@ GL_METHOD(Uniform4fv) { NAPI_ENV;
 	REQ_INT32_ARG(0, location);
 	REQ_OBJ_ARG(1, abv);
 	
-	int num;
-	GLfloat *ptr = getArrayData<GLfloat>(env, abv, &num);
+	int offset = 0;
+	int length = 0;
+	if (info.Length() > 3) {
+		offset = info[2].As<Napi::Number>();
+		length = info[3].As<Napi::Number>();
+	}
+	
+	int num  = length;
+	GLfloat *ptr = getArrayData<GLfloat>(env, abv, length > 0 ? &num : nullptr, offset);
 	num /= 4;
 	
 	glUniform4fv(location, num, ptr);
@@ -2527,8 +2585,15 @@ GL_METHOD(Uniform1iv) { NAPI_ENV;
 	REQ_INT32_ARG(0, location);
 	REQ_OBJ_ARG(1, abv);
 	
-	int num;
-	GLint *ptr = getArrayData<GLint>(env, abv, &num);
+	int offset = 0;
+	int length = 0;
+	if (info.Length() > 3) {
+		offset = info[2].As<Napi::Number>();
+		length = info[3].As<Napi::Number>();
+	}
+	
+	int num  = length;
+	GLint *ptr = getArrayData<GLint>(env, abv, length > 0 ? &num : nullptr, offset);
 	
 	glUniform1iv(location, num, ptr);
 	RET_UNDEFINED;
@@ -2541,8 +2606,15 @@ GL_METHOD(Uniform2iv) { NAPI_ENV;
 	REQ_INT32_ARG(0, location);
 	REQ_OBJ_ARG(1, abv);
 	
-	int num;
-	GLint *ptr = getArrayData<GLint>(env, abv, &num);
+	int offset = 0;
+	int length = 0;
+	if (info.Length() > 3) {
+		offset = info[2].As<Napi::Number>();
+		length = info[3].As<Napi::Number>();
+	}
+	
+	int num  = length;
+	GLint *ptr = getArrayData<GLint>(env, abv, length > 0 ? &num : nullptr, offset);
 	num /= 2;
 	
 	glUniform2iv(location, num, ptr);
@@ -2556,8 +2628,15 @@ GL_METHOD(Uniform3iv) { NAPI_ENV;
 	REQ_INT32_ARG(0, location);
 	REQ_OBJ_ARG(1, abv);
 	
-	int num;
-	GLint *ptr = getArrayData<GLint>(env, abv, &num);
+	int offset = 0;
+	int length = 0;
+	if (info.Length() > 3) {
+		offset = info[2].As<Napi::Number>();
+		length = info[3].As<Napi::Number>();
+	}
+	
+	int num  = length;
+	GLint *ptr = getArrayData<GLint>(env, abv, length > 0 ? &num : nullptr, offset);
 	num /= 3;
 	
 	glUniform3iv(location, num, ptr);
@@ -2571,8 +2650,15 @@ GL_METHOD(Uniform4iv) { NAPI_ENV;
 	REQ_INT32_ARG(0, location);
 	REQ_OBJ_ARG(1, abv);
 	
-	int num;
-	GLint *ptr = getArrayData<GLint>(env, abv, &num);
+	int offset = 0;
+	int length = 0;
+	if (info.Length() > 3) {
+		offset = info[2].As<Napi::Number>();
+		length = info[3].As<Napi::Number>();
+	}
+	
+	int num  = length;
+	GLint *ptr = getArrayData<GLint>(env, abv, length > 0 ? &num : nullptr, offset);
 	num /= 4;
 	
 	glUniform4iv(location, num, ptr);
@@ -2587,8 +2673,16 @@ GL_METHOD(UniformMatrix2fv) { NAPI_ENV;
 	LET_BOOL_ARG(1, transpose);
 	REQ_OBJ_ARG(2, abv);
 	
-	GLsizei count = 0;
-	GLfloat* data = getArrayData<GLfloat>(env, abv, &count);
+
+	int offset = 0;
+	int length = 0;
+	if(info.Length() == 5) {
+		offset = info[3].As<Napi::Number>();
+		length = info[4].As<Napi::Number>();
+	}
+
+	GLsizei count = length;
+	GLfloat* data = getArrayData<GLfloat>(env, abv, !length ? &count : nullptr, offset);
 	
 	if (count < 4) {
 		JS_THROW("Not enough data for UniformMatrix2fv");
@@ -2607,8 +2701,16 @@ GL_METHOD(UniformMatrix3fv) { NAPI_ENV;
 	LET_BOOL_ARG(1, transpose);
 	REQ_OBJ_ARG(2, abv);
 	
-	GLsizei count = 0;
-	GLfloat* data = getArrayData<GLfloat>(env, abv, &count);
+
+	int offset = 0;
+	int length = 0;
+	if(info.Length() == 5) {
+		offset = info[3].As<Napi::Number>();
+		length = info[4].As<Napi::Number>();
+	}
+
+	GLsizei count = length;
+	GLfloat* data = getArrayData<GLfloat>(env, abv, !length ? &count : nullptr, offset);
 	
 	if (count < 9) {
 		JS_THROW("Not enough data for UniformMatrix3fv");
@@ -2627,8 +2729,16 @@ GL_METHOD(UniformMatrix4fv) { NAPI_ENV;
 	LET_BOOL_ARG(1, transpose);
 	REQ_OBJ_ARG(2, abv);
 	
-	GLsizei count = 0;
-	GLfloat* data = getArrayData<GLfloat>(env, abv, &count);
+	
+	int offset = 0;
+	int length = 0;
+	if(info.Length() == 5) {
+		offset = info[3].As<Napi::Number>();
+		length = info[4].As<Napi::Number>();
+	}
+
+	GLsizei count = length;
+	GLfloat* data = getArrayData<GLfloat>(env, abv, !length ? &count : nullptr, offset);
 	
 	if (count < 16) {
 		JS_THROW("Not enough data for UniformMatrix4fv");
