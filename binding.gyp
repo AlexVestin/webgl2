@@ -30,6 +30,7 @@
         '-lavutil',
         '-lavcodec',
         '-lswscale',
+        '-lswresample',
         '-ljpeg'
       ],
       'library_dirs': [

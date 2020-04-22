@@ -667,6 +667,7 @@ GL_METHOD(ReadPixels) { NAPI_ENV;
 	REQ_INT32_ARG(3, height);
 	REQ_INT32_ARG(4, format);
 	REQ_INT32_ARG(5, type);
+	
 	REQ_OBJ_ARG(6, image);
 	
 	void *pixels = getData(env, image);
@@ -1138,7 +1139,6 @@ GL_METHOD(BufferData) { NAPI_ENV;
 	}
 	
 	RET_UNDEFINED;	
-	
 }
 
 
@@ -2077,6 +2077,12 @@ GL_METHOD(TexImage2D) { NAPI_ENV;
 	} else {
 		
 		REQ_OBJ_ARG(8, image);
+		int offset = 0;
+		if (info.Length() == 10) {
+			REQ_INT32_ARG(9, srcOffset);
+			offset = srcOffset;
+		}
+		
 		void *ptr;
 		int offset = 0;
 		if (info.Length() == 10) {
@@ -2087,7 +2093,7 @@ GL_METHOD(TexImage2D) { NAPI_ENV;
 		if(unpack_flip_y || unpack_premultiply_alpha) {
 			ptr = (void*)unpackPixels(type, format, width, height, reinterpret_cast<uint8_t*>(getData(env, image, offset)));
 		} else {
-			ptr = getData(env, image);
+			ptr = getData(env, image, offset);
 		}
 		
 		glTexImage2D(
@@ -2503,6 +2509,13 @@ GL_METHOD(Uniform1fv) { NAPI_ENV;
 	
 	REQ_INT32_ARG(0, location);
 	REQ_OBJ_ARG(1, abv);
+
+	int offset = 0;
+	int length = 0;
+	if (info.Length() > 3) {
+		offset = info[2].As<Napi::Number>();
+		length = info[3].As<Napi::Number>();
+	}
 	
 	int offset = 0;
 	int length = 0;
@@ -2679,7 +2692,6 @@ GL_METHOD(UniformMatrix2fv) { NAPI_ENV;
 	LET_BOOL_ARG(1, transpose);
 	REQ_OBJ_ARG(2, abv);
 	
-	
 	int offset = 0;
 	int length = 0;
 	if(info.Length() == 5) {
@@ -2706,7 +2718,6 @@ GL_METHOD(UniformMatrix3fv) { NAPI_ENV;
 	REQ_INT32_ARG(0, location);
 	LET_BOOL_ARG(1, transpose);
 	REQ_OBJ_ARG(2, abv);
-	
 	
 	int offset = 0;
 	int length = 0;
