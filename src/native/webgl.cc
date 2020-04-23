@@ -2077,11 +2077,6 @@ GL_METHOD(TexImage2D) { NAPI_ENV;
 	} else {
 		
 		REQ_OBJ_ARG(8, image);
-		int offset = 0;
-		if (info.Length() == 10) {
-			REQ_INT32_ARG(9, srcOffset);
-			offset = srcOffset;
-		}
 		
 		void *ptr;
 		int offset = 0;
@@ -2517,12 +2512,6 @@ GL_METHOD(Uniform1fv) { NAPI_ENV;
 		length = info[3].As<Napi::Number>();
 	}
 	
-	int offset = 0;
-	int length = 0;
-	if (info.Length() > 3) {
-		offset = info[2].As<Napi::Number>();
-		length = info[3].As<Napi::Number>();
-	}
 	
 	int num  = length;
 	GLfloat *ptr = getArrayData<GLfloat>(env, abv, !length ? &num : nullptr, offset);

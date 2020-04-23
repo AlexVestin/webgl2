@@ -346,11 +346,7 @@ inline Type* getBufferData(
 	if (num) {
 		*num = arr.Length() / sizeof(Type);
 	}
-<<<<<<< HEAD
 	data = arr.Data() + sizeof(Type) * offset;
-=======
-	data = arr.Data() + offset;
->>>>>>> origin/master
 	
 	return data;
 	
