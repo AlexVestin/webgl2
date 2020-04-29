@@ -1,6 +1,6 @@
 #include <napi.h>
 #include "webgl.h"
-
+#include "decode.h";
 #define JS_CONSTANT(x,v) InstanceValue(\
   #x \
   , Napi::Number::New(env, v))
@@ -750,7 +750,10 @@ Napi::Object WebGLRenderingContext::Init(Napi::Env env, Napi::Object exports) {
 }
 
 Napi::Object InitAll(Napi::Env env, Napi::Object exports) {
-  return WebGLRenderingContext::Init(env, exports);
+  VideoDecodingContext::Init(env, exports);
+  WebGLRenderingContext::Init(env, exports);
+
+  return exports;
 }
 
 NODE_API_MODULE(addon, InitAll)

@@ -25,7 +25,7 @@ var logFunction = function(obj, fn) {
   };
 };
 
-const WebGLRenderingContext = require('../gl');
+const WebGLRenderingContext = require('../gl').WebGLRenderingContext;
 function wrap(width, height) {
   let origGl = new WebGLRenderingContext(width, height);
   let gl = { ...origGl };
@@ -835,4 +835,7 @@ function wrap(width, height) {
   return gl;
 }
 
-module.exports = wrap;
+module.exports = {
+  WebGLRenderingContext: wrap,
+  VideoDecodingContext: require('../gl').VideoDecodingContext,
+};

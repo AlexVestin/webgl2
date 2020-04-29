@@ -9,6 +9,8 @@
    (const Napi::CallbackInfo& info)
 
 
+
+
 void logError(int errnum) {
   static char str[AV_ERROR_MAX_STRING_SIZE];
 	memset(str, 0, sizeof(str));
@@ -51,28 +53,6 @@ void write_to_img(std::string name, int screenWidth, int screenHeight) {
   jpeg_destroy_compress(&cinfo);
 }
 
-
-static const GLchar* vertexShaderSource =
-    "#version 300 es\n"
-    "precision highp float;\n"
-    "in vec2 position;\n"
-    "const vec2 madd=vec2(0.5,0.5);\n"
-    "out vec2 textureCoord;\n"
-    "void main()\n"
-    "{\n"
-      "textureCoord = position.xy*madd+madd;\n"
-      "gl_Position = vec4(position.xy, 0.0, 1.0);\n"
-    "}\0";
-
-const GLchar* fragmentShaderSource =
-    "#version 300 es\n"
-    "precision highp float;\n"
-    "out vec4 fragColor;\n"
-    "uniform sampler2D tex;\n"
-    "in vec2 textureCoord;\n"
-    "void main () {\n"
-      "fragColor = texture(tex, vec2(textureCoord.x, 1.0 - textureCoord.y ));\n"
-    "}\n";
 
 GL_METHOD(NvencBindBuffer) { NAPI_ENV;
     glBindFramebuffer(GL_FRAMEBUFFER, fboMsaaId);

@@ -1,2 +1,1 @@
-
-module.exports = require("./src/tmp")
+module.exports = require('./src/tmp');

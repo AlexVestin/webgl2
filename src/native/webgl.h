@@ -13,8 +13,6 @@
 	#define EGL_EGLEXT_PROTOTYPES 1
 	#include <EGL/egl.h>
 	#include <EGL/eglext.h>
-	#include <GLES2/gl2.h>
-	#include <GLES2/gl2ext.h>
 	#include <GLES3/gl32.h>
 
     #include <cuda.h>
@@ -27,11 +25,42 @@
         #include <libavcodec/avcodec.h>
         #include <libavutil/error.h>
         #include <libavutil/opt.h>
-        #include <libavutil/hwcontext.h>
-        #include <libavutil/hwcontext_cuda.h>
         #include <libswresample/swresample.h>
         #include <libswscale/swscale.h>
     }
+#endif
+
+
+static const GLchar* vertexShaderSource = "#version 300 es\n"
+    "precision highp float;\n"
+    "in vec2 position;\n"
+    "const vec2 madd=vec2(0.5,0.5);\n"
+    "out vec2 textureCoord;\n"
+    "void main()\n"
+    "{\n"
+      "textureCoord = position.xy*madd+madd;\n"
+      "gl_Position = vec4(position.xy, 0.0, 1.0);\n"
+    "}\0";
+
+static const GLchar* fragmentShaderSource =
+    "#version 300 es\n"
+    "precision highp float;\n"
+    "out vec4 fragColor;\n"
+    "uniform sampler2D tex;\n"
+    "in vec2 textureCoord;\n"
+    "void main () {\n"
+      "fragColor = texture(tex, vec2(textureCoord.x, 1.0 - textureCoord.y ));\n"
+    "}\n";
+
+// fix temporary array error in c++1x
+#ifdef av_err2str
+#undef av_err2str
+av_always_inline char* av_err2str(int errnum)
+{
+    static char str[AV_ERROR_MAX_STRING_SIZE];
+    memset(str, 0, sizeof(str));
+    return av_make_error_string(str, AV_ERROR_MAX_STRING_SIZE, errnum);
+}
 #endif
 
 class WebGLRenderingContext : public Napi::ObjectWrap<WebGLRenderingContext> {

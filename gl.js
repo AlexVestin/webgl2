@@ -1,3 +1,7 @@
-const { WebGLRenderingContext } = require('bindings')('webgl');
-module.exports = WebGLRenderingContext;
-console.log('update');
+const { WebGLRenderingContext, VideoDecodingContext } = require('bindings')(
+  'webgl',
+);
+module.exports = {
+  VideoDecodingContext,
+  WebGLRenderingContext,
+};
