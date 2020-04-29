@@ -18,14 +18,13 @@
     #include <GLES3/gl3.h>
 #endif
 extern "C" {
-    #include <libavutil/hwcontext.h>
-    #include <libavutil/hwcontext_cuda.h>
-    #include <libavformat/avformat.h>
-    #include <libavcodec/avcodec.h>
-    #include <libavutil/imgutils.h>
-
-    #include <libswresample/swresample.h>
-    #include <libswscale/swscale.h>
+    #include <include_temp/libavcodec/avcodec.h>
+    #include <include_temp/libavutil/hwcontext.h>
+    #include <include_temp/libavutil/hwcontext_cuda.h>
+    #include <include_temp/libavformat/avformat.h>
+    #include <include_temp/libavutil/imgutils.h>
+    #include <include_temp/libswresample/swresample.h>
+    #include <include_temp/libswscale/swscale.h>
 }
 
 class VideoDecodingContext : public Napi::ObjectWrap<VideoDecodingContext> {
@@ -58,7 +57,8 @@ class VideoDecodingContext : public Napi::ObjectWrap<VideoDecodingContext> {
     AVPacket* pkt;
     AVStream* video_stream;
     enum AVPixelFormat pix_fmt;
-    struct SwsContext *conv_ctx;
+    SwsContext *conv_ctx;
+    int conv_inited = 0;
 
 
     uint8_t* dst_data;
@@ -79,6 +79,8 @@ class VideoDecodingContext : public Napi::ObjectWrap<VideoDecodingContext> {
     NAPI_METHOD(CreateWindow);
     NAPI_METHOD(Draw);
     NAPI_METHOD(InitGL);
+    NAPI_METHOD(SeekFrame);
+    NAPI_METHOD(GetInfo);
 };
 
 #endif

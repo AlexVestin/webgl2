@@ -19,6 +19,7 @@ Napi::Object WebGLRenderingContext::Init(Napi::Env env, Napi::Object exports) {
   Napi::Function func = DefineClass(env, "WebGLRenderingContext",
     {      
       JS_GL_METHOD("nvencBindBuffer", NvencBindBuffer),
+      JS_GL_METHOD("nvencWriteImage", NvencWriteImage),
       JS_GL_METHOD("nvencAddAudioFrame", NvencAddAudioFrame),
       JS_GL_METHOD("nvencEncode", NvencEncode),
       JS_GL_METHOD("nvencInitVideo", NvencInitVideo),

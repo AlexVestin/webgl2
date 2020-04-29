@@ -54,6 +54,14 @@ void write_to_img(std::string name, int screenWidth, int screenHeight) {
 }
 
 
+
+GL_METHOD(NvencWriteImage) { NAPI_ENV;
+    write_to_img(std::to_string(counter++), screenWidth, screenHeight);
+    RET_UNDEFINED
+}
+
+
+
 GL_METHOD(NvencBindBuffer) { NAPI_ENV;
     glBindFramebuffer(GL_FRAMEBUFFER, fboMsaaId);
     RET_NUM(fboMsaaId);
@@ -250,7 +258,7 @@ GL_METHOD(NvencEncode) { NAPI_ENV;
     glUniform1i(textureLocation, 0);
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
-    
+
     //write_to_img(std::to_string(counter++), screenWidth, screenHeight);
     
 

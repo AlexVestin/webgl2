@@ -130,7 +130,6 @@ void VideoDecodingContext::buildShader() {
     glBindVertexArray(NULL);
 
     std::cout << "Done with set up" << std::endl;
-
 }
 
 void VideoDecodingContext::createWindow() {
@@ -157,15 +156,40 @@ void VideoDecodingContext::createWindow() {
     #endif
 }
 
+int64_t FrameToPts(AVStream* st, int frame) {
+    return (int64_t(frame) * st->r_frame_rate.den *  st->time_base.den) /  (int64_t(st->r_frame_rate.num) * st->time_base.num);
+}
+
 METHOD(CreateWindow) { NAPI_ENV
     createWindow();
     RET_UNDEFINED;
 }
 
+METHOD(SeekFrame) { NAPI_ENV
+    REQ_UINT32_ARG(0, frame_idx);
+    int64_t pts = FrameToPts(video_stream, frame_idx);
+    int ret = av_seek_frame(fmt_ctx, video_stream_idx, pts, AVSEEK_FLAG_FRAME);
+    RET_NUM(ret)
+}
+
+METHOD(GetInfo) { NAPI_ENV
+    Napi::Object obj = Napi::Object::New(env);
+    obj.Set("den", Napi::Number::New(env, video_stream->r_frame_rate.den));
+    obj.Set("num", Napi::Number::New(env, video_stream->r_frame_rate.num));
+    obj.Set("width", Napi::Number::New(env, video_ctx->width));
+    obj.Set("height", Napi::Number::New(env, video_ctx->height));
+    return obj;
+}
+
 
 METHOD(Draw) { NAPI_ENV
-    glClear(GL_COLOR_BUFFER_BIT);	
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_SCISSOR_TEST);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
+    glDepthMask(false);
 
+    glClear(GL_COLOR_BUFFER_BIT);	
     glUseProgram(program);
 	glBindTexture(GL_TEXTURE_2D, texture);
     glActiveTexture(GL_TEXTURE0);
@@ -177,6 +201,13 @@ METHOD(Draw) { NAPI_ENV
         glfwSwapBuffers(window);
     }
     #endif
+
+    // unbind
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindVertexArray(0);
+    glUseProgram(0);
+    
 	
     RET_UNDEFINED;
 }
@@ -201,26 +232,23 @@ METHOD(GetFrame) { NAPI_ENV
             exit(1);
         }
 
-        printf("????");
-
-
-        if (!conv_ctx) {
+        if (!conv_inited) {
             conv_ctx = sws_getContext(width, height, video_ctx->pix_fmt, width, height, AV_PIX_FMT_RGB32, SWS_BILINEAR, NULL, NULL, NULL);
+            conv_inited = 1;
         }
-        
+
         sws_scale(conv_ctx, frame->data, frame->linesize, 0,  height, scaled_frame->data, scaled_frame->linesize);
-
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, scaled_frame->data[0]);	
     }
-
-
-    //glBindTexture(GL_TEXTURE_2D, texture);
-    //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, scaled_frame->data[0]);	
 }
 
 
 
 METHOD(OpenVideo) { NAPI_ENV
     REQ_STR_ARG(0, src_filename);
+
+    printf("test var: %d \n", _TEST_VAR);
 
        /* open input file, and allocate format context */
     if (avformat_open_input(&fmt_ctx, src_filename.c_str(), NULL, NULL) < 0) {
@@ -339,6 +367,9 @@ Napi::Object VideoDecodingContext::Init(Napi::Env env, Napi::Object exports) {
       JS_METHOD("createWindow", CreateWindow),
       JS_METHOD("draw", Draw),
       JS_METHOD("initGL", InitGL),
+      JS_METHOD("seek", SeekFrame),
+      JS_METHOD("getInfo", GetInfo),
+
     });
 
   constructor = Napi::Persistent(func);
