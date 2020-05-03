@@ -1563,6 +1563,40 @@ GL_METHOD(RenderbufferStorage) { NAPI_ENV;
 	
 }
 
+GL_METHOD(RenderbufferStorageMultisample) { NAPI_ENV;
+	
+	REQ_UINT32_ARG(0, target);
+	REQ_UINT32_ARG(1, samples);
+	REQ_UINT32_ARG(2, internalformat);
+	REQ_UINT32_ARG(3, width);
+	REQ_UINT32_ARG(4, height);
+	
+	glRenderbufferStorageMultisample(target, samples, internalformat, width, height);
+	RET_UNDEFINED;
+	
+}
+
+GL_METHOD(BlitFramebuffer) { NAPI_ENV;
+	
+	REQ_UINT32_ARG(0, srcX0);
+	REQ_UINT32_ARG(1, srcY0);
+	REQ_UINT32_ARG(2, srcX1);
+	REQ_UINT32_ARG(3, srcY1);
+
+	REQ_UINT32_ARG(4, dstX0);
+	REQ_UINT32_ARG(5, dstY0);
+	REQ_UINT32_ARG(6, dstX1);
+	REQ_UINT32_ARG(7, dstY1);
+	
+	REQ_UINT32_ARG(8, mask);
+	REQ_UINT32_ARG(9, filter);
+
+	glBlitFramebuffer(srcX0, srcY0, srcX1,srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
+	RET_UNDEFINED;
+	
+}
+
+
 
 
 

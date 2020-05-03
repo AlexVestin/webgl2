@@ -227,6 +227,8 @@ class WebGLRenderingContext : public Napi::ObjectWrap<WebGLRenderingContext> {
     NAPI_METHOD(BindFramebuffer);
     NAPI_METHOD(BindFrameBuffer);
     NAPI_METHOD(BlitFrameBuffer);
+    NAPI_METHOD(BlitFramebuffer);
+
     NAPI_METHOD(CheckFramebufferStatus);
     NAPI_METHOD(FramebufferRenderbuffer);
     NAPI_METHOD(FramebufferTexture2D);
@@ -253,7 +255,7 @@ class WebGLRenderingContext : public Napi::ObjectWrap<WebGLRenderingContext> {
     NAPI_METHOD(BindRenderbuffer);
     NAPI_METHOD(GetRenderbufferParameter);
     NAPI_METHOD(RenderbufferStorage);
-
+    NAPI_METHOD(RenderbufferStorageMultisample);
 
 
     // Shader
