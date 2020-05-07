@@ -562,6 +562,7 @@ function wrap(width, height) {
   // Misc OpenGL Functions
   gl.getParameter = pname => {
     let ret;
+
     switch (pname) {
       // GL_IMPLEMENTATION_COLOR_READ_TYPE
       case 0x8b9a:
@@ -599,6 +600,9 @@ function wrap(width, height) {
         break;
       case 0x1f01:
         ret = 'WebKit'; // VENDOR
+        break;
+      case 0x1f00:
+        ret = 'WebKit WebGL'; // RENDERER
         break;
       case 0x1f00:
         ret = 'WebKit WebGL'; // RENDERER

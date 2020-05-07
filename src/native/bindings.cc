@@ -77,7 +77,7 @@ Napi::Object WebGLRenderingContext::Init(Napi::Env env, Napi::Object exports) {
       JS_GL_METHOD("bindFramebuffer", BindFramebuffer),
       JS_GL_METHOD("bindFrameBuffer", BindFrameBuffer),
       JS_GL_METHOD("blitFrameBuffer", BlitFrameBuffer),
-          JS_GL_METHOD("blitFramebuffer", BlitFramebuffer),
+      JS_GL_METHOD("blitFramebuffer", BlitFramebuffer),
 
       JS_GL_METHOD("checkFramebufferStatus", CheckFramebufferStatus),
       JS_GL_METHOD("framebufferRenderbuffer", FramebufferRenderbuffer),

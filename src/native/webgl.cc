@@ -1531,7 +1531,7 @@ GL_METHOD(BindRenderbuffer) { NAPI_ENV;
 	
 	REQ_INT32_ARG(0, target);
 	LET_INT32_ARG(1, buffer);
-	
+	std::cout << target << ":" << buffer << std::endl;
 	glBindRenderbuffer(target, buffer);
 	RET_UNDEFINED;
 	
@@ -1557,8 +1557,15 @@ GL_METHOD(RenderbufferStorage) { NAPI_ENV;
 	REQ_INT32_ARG(1, internalformat);
 	REQ_UINT32_ARG(2, width);
 	REQ_UINT32_ARG(3, height);
+
+
 	
-	glRenderbufferStorage(target, internalformat, width, height);
+	if(internalformat == 34041) {
+		glRenderbufferStorage(target, GL_DEPTH24_STENCIL8, width, height);
+	} else {
+		glRenderbufferStorage(target, internalformat, width, height);
+	}
+	
 	RET_UNDEFINED;
 	
 }
