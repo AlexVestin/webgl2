@@ -19,14 +19,14 @@
     #include <cudaGL.h>
     
     extern "C" {
-        #include <include_temp/libavcodec/avcodec.h>
-        #include <include_temp/libavutil/hwcontext.h>
-        #include <include_temp/libavutil/hwcontext_cuda.h>
-        #include <include_temp/libavformat/avformat.h>
-        #include <include_temp/libavutil/error.h>
-        #include <include_temp/libavutil/opt.h>
-        #include <include_temp/libswresample/swresample.h>
-        #include <include_temp/libswscale/swscale.h>
+        #include <libavcodec/avcodec.h>
+        #include <libavutil/hwcontext.h>
+        #include <libavutil/hwcontext_cuda.h>
+        #include <libavformat/avformat.h>
+        #include <libavutil/error.h>
+        #include <libavutil/opt.h>
+        #include <libswresample/swresample.h>
+        #include <libswscale/swscale.h>
     }
 #endif
 

@@ -248,7 +248,6 @@ METHOD(GetFrame) { NAPI_ENV
 METHOD(OpenVideo) { NAPI_ENV
     REQ_STR_ARG(0, src_filename);
 
-    printf("test var: %d \n", _TEST_VAR);
 
        /* open input file, and allocate format context */
     if (avformat_open_input(&fmt_ctx, src_filename.c_str(), NULL, NULL) < 0) {
