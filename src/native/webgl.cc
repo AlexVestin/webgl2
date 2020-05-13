@@ -1531,7 +1531,6 @@ GL_METHOD(BindRenderbuffer) { NAPI_ENV;
 	
 	REQ_INT32_ARG(0, target);
 	LET_INT32_ARG(1, buffer);
-	std::cout << target << ":" << buffer << std::endl;
 	glBindRenderbuffer(target, buffer);
 	RET_UNDEFINED;
 	

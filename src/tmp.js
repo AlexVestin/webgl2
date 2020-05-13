@@ -569,28 +569,16 @@ function wrap(width, height) {
         if (origGl.getParameter(gl.FRAMEBUFFER_BINDING) === 2) {
           ret = gl.UNSIGNED_BYTE;
         } else {
-          console.log(
-            'Unknown COLOR_READ_TYPE type',
-            origGl.getParameter(gl.FRAMEBUFFER_BINDING),
-          );
-
           ret = gl.UNSIGNED_BYTE;
         }
-        console.log('ret: ', ret);
         break;
       // GL_IMPLEMENTATION_COLOR_READ_FORMAT
       case 0x8b9b:
         if (origGl.getParameter(gl.FRAMEBUFFER_BINDING) === 2) {
           ret = gl.RGBA;
         } else {
-          console.log(
-            'Unknown COLOR_READ_FORMAT type',
-            origGl.getParameter(gl.FRAMEBUFFER_BINDING),
-          );
-
           ret = gl.RGBA;
         }
-        console.log('ret: ', ret);
         break;
       case 0x9245:
         ret = origGl.getParameter(0x1f00); // UNMASKED VENDOR
