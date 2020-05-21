@@ -753,6 +753,9 @@ GL_METHOD(NvencInitVideo) { NAPI_ENV;
   c->bit_rate = bit_rate;
   c->rc_max_rate = max_bitrate;
   c->rc_min_rate = min_bitrate;
+
+  c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+
   ret = avcodec_open2(c, codec, NULL);
   if (ret < 0) {
     std::cout << "Could not open avcodec" << std::endl;
