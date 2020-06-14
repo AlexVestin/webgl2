@@ -26,7 +26,7 @@ var logFunction = function(obj, fn) {
 };
 
 const WebGLRenderingContext = require('../gl').WebGLRenderingContext;
-function wrap(width, height) {
+function wrap(width, height, screen) {
   let origGl = new WebGLRenderingContext(width, height);
   let gl = { ...origGl };
 
@@ -170,7 +170,14 @@ function wrap(width, height) {
   gl.isFramebuffer = framebuffer =>
     origGl.isFramebuffer(enforceId(framebuffer));
   gl.bindFramebuffer = (target, framebuffer) => {
-    origGl.bindFramebuffer(target, enforceId(framebuffer));
+    // If we have a screen allow binding to default framebuffer, otherwise bind to multisampled
+    // "nvenc" framebuffer we use for encoding
+    const scfb = framebuffer === 0 || framebuffer === null;
+    if (scfb && !screen) {
+      origGl.nvencBindBuffer();
+    } else {
+      origGl.bindFramebuffer(target, enforceId(framebuffer));
+    }
   };
 
   gl.framebufferRenderbuffer = (
